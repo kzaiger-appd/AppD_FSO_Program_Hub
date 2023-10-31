@@ -364,13 +364,13 @@ function ExecutiveSummary() {
       checked={onTrackCheck}
       onChange={handleOnTrackChange}
     />
-      <Button onClick={() => handleOnTrackChange()} variant="success" style={{color:'black', background: 'lightgreen', marginRight: '250px' }}>On Track: {statusCounts['onTrack']}</Button>
+      <Button onClick={() => handleOnTrackChange()} variant="success" style={{color:'black', background: 'lightgreen', marginRight: '60px' }}>On Track: {statusCounts['onTrack']}</Button>
       <input
       type="checkbox"
       checked={delayedCheck}
       onChange={handleDelayedChange}
     />
-      <Button onClick={() => handleDelayedChange()} variant="warning" style={{ background: 'gold' ,  marginRight: '250px'}}>Delayed: {statusCounts.delayed}</Button>
+      <Button onClick={() => handleDelayedChange()} variant="warning" style={{ background: 'gold' ,  marginRight: '60px'}}>Delayed: {statusCounts.delayed}</Button>
       <input
       type="checkbox"
       checked={missedCheck}
