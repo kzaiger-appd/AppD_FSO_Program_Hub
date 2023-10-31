@@ -43,6 +43,7 @@ function SubmissionForm(){
         platform_type: false,
         status: false,
         releaseStatus: false,
+        programContent: false,
         releaseType: false,
         csldUrl: false,
         timsSitUrl: false,
@@ -55,7 +56,7 @@ function SubmissionForm(){
         let isValid = true;
     
         // Define an array of valid input field names
-        const validFieldNames = ["projectName", "projectVersion", "ccoCommit", "ccoTarget", "ccoActual", "icDate", "platform_type", "status", "releaseStatus", "releaseType", "csldUrl", "timsSitUrl"];
+        const validFieldNames = ["projectName", "projectVersion", "ccoCommit", "ccoTarget", "ccoActual", "icDate","programContent", "platform_type", "status", "releaseStatus", "releaseType", "csldUrl", "timsSitUrl"];
     
         // Perform validation based on the input field name
         if (validFieldNames.includes(name)) {
@@ -411,9 +412,11 @@ function SubmissionForm(){
                             </OverlayTrigger>
                             <Form.Control
                                 size="sm"
+                                name="programContent"
                                 as="textarea"
                                 aria-label="With textarea"
                                 rows={1}
+                                onChange={handleInputChange}
                             />
                         </Form.Group>
                     </Col>

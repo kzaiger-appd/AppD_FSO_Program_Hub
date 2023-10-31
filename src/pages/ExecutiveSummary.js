@@ -8,9 +8,9 @@ import { API, graphqlOperation } from 'aws-amplify';
 import Container from 'react-bootstrap/Container';
 import Navbar from 'react-bootstrap/Navbar';
 import Button from 'react-bootstrap/Button';
-import { listTodos } from '../graphql/queries'; // Adjust the import path as needed
+import { listTodos } from '../graphql/queries'; 
 import styled from 'styled-components';
-// import { updateTodo } from '../graphql/mutations'; // Adjust the import path as needed
+import { updateTodo } from '../graphql/mutations'; 
 
 const modules1 = {
   toolbar: [
@@ -41,17 +41,51 @@ const EditorContainer = styled.div`
   }
 `;
 
-function RichTextEditorCell({ value, onValueChange }) {
+function RichTextEditorCell({ value, onValueChange, id }) {
   const quillRef = useRef(null);
   const [isFocused, setIsFocused] = useState(false);
+  const [localValue, setLocalValue] = useState(value);
 
   const handleFocus = () => {
     setIsFocused(true);
   };
 
-  const handleBlur = () => {
+  const handleBlur = async () => {
     setIsFocused(false);
+    
+    onValueChange((newValue) => {
+      console.log('Before API Call - Value:', newValue); // Add this line
+      return newValue;
+    });
+
+    console.log('Before API Call - Value:', value); // Add this line
+
+    try {
+      const response = await API.graphql(
+        graphqlOperation(updateTodo, {
+          input: {
+            id: id,
+            backlog: value,
+            // Include other fields to update as needed
+          },
+        })
+      );
+
+      console.log('Response:', response);
+  
+      if (response.errors) {
+        console.error('GraphQL Errors:', response.errors);
+        // Handle GraphQL errors here and provide feedback to the user
+      } else {
+        console.log('Update successful');
+        onValueChange(value); // Update parent state with the new value
+      }
+    } catch (error) {
+      console.error('Error updating data:', error);
+      // Handle other errors here and provide feedback to the user
+    }
   };
+  
 
   const handleToolbar = (event) => {
     const ToolbarElement = event.target.className;
@@ -67,8 +101,11 @@ function RichTextEditorCell({ value, onValueChange }) {
     <EditorContainer className={`rich-text-editor ${isFocused ? 'focused' : ''}`}>
       <ReactQuill
         ref={quillRef}
-        value={value}
-        onChange={onValueChange}
+        value={localValue} // Use localValue, not value
+        onChange={(content) => {
+          setLocalValue(content); // Update local state
+          onValueChange(content); // Update parent state immediately
+        }}
         modules={modules1}
         theme="snow"
         onFocus={handleFocus}
@@ -121,7 +158,7 @@ function ExecutiveSummary() {
   const [missedCheck, setMissedCheck]=useState(true);
 
   const [paginationModel, setPaginationModel] = useState({
-    pageSize: 5,
+    pageSize: 50,
     page: 0,
   });
   
@@ -145,6 +182,16 @@ function ExecutiveSummary() {
       counts[row.status] += 1;
     }
     return counts;
+  };
+
+  const updateRowInParent = (updatedRow) => {
+    // Create a new array of todos with the updated row
+    const updatedTodos = todos.map((todo) =>
+      todo.id === updatedRow.id ? updatedRow : todo
+    );
+
+    // Update the state with the new array of todos
+    setTodos(updatedTodos);
   };
 
   const filterTodos = () => {
@@ -182,6 +229,7 @@ function ExecutiveSummary() {
         const todoItems = responseData.items.map((todo) => ({
           id: todo.id,
           projectName: todo.projectName,
+          programContent: todo.programContent,
           releaseContent: todo.releaseContent,
           status: todo.status,
           platform: todo.platform_type,
@@ -231,7 +279,7 @@ function ExecutiveSummary() {
     { field: 'projectName', headerName: <Typography>Project Name</Typography>,  width: 20, flex: 1, renderCell: (params) => (
       <div>
         <Typography>{params.row.projectName || ''}</Typography>
-        <Typography color="textSecondary">{params.row.releaseContent || ''}</Typography>
+        <Typography color="textSecondary">{params.row.programContent || ''}</Typography>
       </div>
     )},
     {
@@ -286,13 +334,17 @@ function ExecutiveSummary() {
     sortable: false,
     editable: true,
     width: 15,
-    flex: 1,
+    flex: 2,
     renderCell: (params) => (
       <RichTextEditorCell
         value={params.row.backlog || ''}
         onValueChange={(content) => {
-          params.row.executiveSummary=content;
+          const updatedRow = { ...params.row, backlog: content };
+          // Call a function to update the state of the parent component with the updated row
+          updateRowInParent(updatedRow);
         }}
+      
+        id={params.row.id}
       />
     ),
   },
@@ -336,7 +388,7 @@ function ExecutiveSummary() {
           rows={filteredTodos}
           getRowHeight={() => 'auto'}
           columns={columns}
-          pageSizeOptions={[5]}
+          pageSizeOptions={[50]}
           disableRowSelectionOnClick
         />
       </Box>

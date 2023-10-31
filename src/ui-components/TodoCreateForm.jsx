@@ -7,8 +7,7 @@
 /* eslint-disable */
 import * as React from "react";
 import { Button, Flex, Grid, TextField } from "@aws-amplify/ui-react";
-import { getOverrideProps } from "@aws-amplify/ui-react/internal";
-import { fetchByPath, validateField } from "./utils";
+import { fetchByPath, getOverrideProps, validateField } from "./utils";
 import { API } from "aws-amplify";
 import { createTodo } from "../graphql/mutations";
 export default function TodoCreateForm(props) {
@@ -37,6 +36,7 @@ export default function TodoCreateForm(props) {
     releaseStatus: "",
     releaseType: "",
     rvVerified: "",
+    programContent: "",
     ssAttribute: "",
     status: "",
     timsSitUrl: "",
@@ -70,6 +70,9 @@ export default function TodoCreateForm(props) {
     initialValues.releaseType
   );
   const [rvVerified, setRvVerified] = React.useState(initialValues.rvVerified);
+  const [programContent, setProgramContent] = React.useState(
+    initialValues.programContent
+  );
   const [ssAttribute, setSsAttribute] = React.useState(
     initialValues.ssAttribute
   );
@@ -94,6 +97,7 @@ export default function TodoCreateForm(props) {
     setReleaseStatus(initialValues.releaseStatus);
     setReleaseType(initialValues.releaseType);
     setRvVerified(initialValues.rvVerified);
+    setProgramContent(initialValues.programContent);
     setSsAttribute(initialValues.ssAttribute);
     setStatus(initialValues.status);
     setTimsSitUrl(initialValues.timsSitUrl);
@@ -115,6 +119,7 @@ export default function TodoCreateForm(props) {
     releaseStatus: [],
     releaseType: [],
     rvVerified: [],
+    programContent: [],
     ssAttribute: [],
     status: [],
     timsSitUrl: [],
@@ -160,6 +165,7 @@ export default function TodoCreateForm(props) {
           releaseStatus,
           releaseType,
           rvVerified,
+          programContent,
           ssAttribute,
           status,
           timsSitUrl,
@@ -194,7 +200,7 @@ export default function TodoCreateForm(props) {
             }
           });
           await API.graphql({
-            query: createTodo,
+            query: createTodo.replaceAll("__typename", ""),
             variables: {
               input: {
                 ...modelFields,
@@ -240,6 +246,7 @@ export default function TodoCreateForm(props) {
               releaseStatus,
               releaseType,
               rvVerified,
+              programContent,
               ssAttribute,
               status,
               timsSitUrl,
@@ -281,6 +288,7 @@ export default function TodoCreateForm(props) {
               releaseStatus,
               releaseType,
               rvVerified,
+              programContent,
               ssAttribute,
               status,
               timsSitUrl,
@@ -322,6 +330,7 @@ export default function TodoCreateForm(props) {
               releaseStatus,
               releaseType,
               rvVerified,
+              programContent,
               ssAttribute,
               status,
               timsSitUrl,
@@ -363,6 +372,7 @@ export default function TodoCreateForm(props) {
               releaseStatus,
               releaseType,
               rvVerified,
+              programContent,
               ssAttribute,
               status,
               timsSitUrl,
@@ -404,6 +414,7 @@ export default function TodoCreateForm(props) {
               releaseStatus,
               releaseType,
               rvVerified,
+              programContent,
               ssAttribute,
               status,
               timsSitUrl,
@@ -445,6 +456,7 @@ export default function TodoCreateForm(props) {
               releaseStatus,
               releaseType,
               rvVerified,
+              programContent,
               ssAttribute,
               status,
               timsSitUrl,
@@ -486,6 +498,7 @@ export default function TodoCreateForm(props) {
               releaseStatus,
               releaseType,
               rvVerified,
+              programContent,
               ssAttribute,
               status,
               timsSitUrl,
@@ -527,6 +540,7 @@ export default function TodoCreateForm(props) {
               releaseStatus,
               releaseType,
               rvVerified,
+              programContent,
               ssAttribute,
               status,
               timsSitUrl,
@@ -568,6 +582,7 @@ export default function TodoCreateForm(props) {
               releaseStatus,
               releaseType,
               rvVerified,
+              programContent,
               ssAttribute,
               status,
               timsSitUrl,
@@ -609,6 +624,7 @@ export default function TodoCreateForm(props) {
               releaseStatus,
               releaseType,
               rvVerified,
+              programContent,
               ssAttribute,
               status,
               timsSitUrl,
@@ -650,6 +666,7 @@ export default function TodoCreateForm(props) {
               releaseStatus,
               releaseType,
               rvVerified,
+              programContent,
               ssAttribute,
               status,
               timsSitUrl,
@@ -691,6 +708,7 @@ export default function TodoCreateForm(props) {
               releaseStatus: value,
               releaseType,
               rvVerified,
+              programContent,
               ssAttribute,
               status,
               timsSitUrl,
@@ -732,6 +750,7 @@ export default function TodoCreateForm(props) {
               releaseStatus,
               releaseType: value,
               rvVerified,
+              programContent,
               ssAttribute,
               status,
               timsSitUrl,
@@ -773,6 +792,7 @@ export default function TodoCreateForm(props) {
               releaseStatus,
               releaseType,
               rvVerified: value,
+              programContent,
               ssAttribute,
               status,
               timsSitUrl,
@@ -790,6 +810,48 @@ export default function TodoCreateForm(props) {
         errorMessage={errors.rvVerified?.errorMessage}
         hasError={errors.rvVerified?.hasError}
         {...getOverrideProps(overrides, "rvVerified")}
+      ></TextField>
+      <TextField
+        label="Program content"
+        isRequired={false}
+        isReadOnly={false}
+        value={programContent}
+        onChange={(e) => {
+          let { value } = e.target;
+          if (onChange) {
+            const modelFields = {
+              projectName,
+              projectVersion,
+              backlog,
+              ccoActual,
+              ccoCommit,
+              ccoTarget,
+              csldUrl,
+              icDate,
+              platform_type,
+              psirtClosed,
+              psirtOpened,
+              releaseStatus,
+              releaseType,
+              rvVerified,
+              programContent: value,
+              ssAttribute,
+              status,
+              timsSitUrl,
+              tsAttribute,
+            };
+            const result = onChange(modelFields);
+            value = result?.programContent ?? value;
+          }
+          if (errors.programContent?.hasError) {
+            runValidationTasks("programContent", value);
+          }
+          setProgramContent(value);
+        }}
+        onBlur={() => runValidationTasks("programContent", programContent)}
+        errorMessage={errors.programContent?.errorMessage}
+        hasError={errors.programContent?.hasError}
+        {...getOverrideProps(overrides, "programContent")}
       ></TextField>
       <TextField
         label="Ss attribute"
@@ -814,6 +876,7 @@ export default function TodoCreateForm(props) {
               releaseStatus,
               releaseType,
               rvVerified,
+              programContent,
               ssAttribute: value,
               status,
               timsSitUrl,
@@ -855,6 +918,7 @@ export default function TodoCreateForm(props) {
               releaseStatus,
               releaseType,
               rvVerified,
+              programContent,
               ssAttribute,
               status: value,
               timsSitUrl,
@@ -896,6 +960,7 @@ export default function TodoCreateForm(props) {
               releaseStatus,
               releaseType,
               rvVerified,
+              programContent,
               ssAttribute,
               status,
               timsSitUrl: value,
@@ -937,6 +1002,7 @@ export default function TodoCreateForm(props) {
               releaseStatus,
               releaseType,
               rvVerified,
+              programContent,
               ssAttribute,
               status,
               timsSitUrl,
