@@ -1,5 +1,5 @@
 import {FormControl, OverlayTrigger, Tooltip} from 'react-bootstrap'
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import "./submission_form.css";
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form';
@@ -8,12 +8,76 @@ import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Box from '@mui/material/Box';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+import styled from 'styled-components'; 
 import { API, graphqlOperation } from 'aws-amplify';
 import { createTodo } from '../graphql/mutations.js';
+import { listTodos } from '../graphql/queries'; // Adjust the import path as needed
 // import Tooltip from 'react-bootstrap/Tooltip';
 //import {Text} from 'react-bootstrap/Text'
 
 //import FormText from 'react-bootstrap/FormText'
+
+import Select from 'react-select';
+
+const modules = {
+    toolbar: [
+      [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
+      ['bold', 'italic', 'underline'],
+      [{ 'color': [] }],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+    ],
+    clipboard: {
+      matchVisual: false,
+    },
+  };
+  
+  const EditorContainer = styled.div`
+  .ql-toolbar {
+    display: none;
+  }
+
+  &.focused .ql-toolbar {
+    display: block;
+  }
+
+  .ql-editor {
+    border-top: 2px solid #ccc;
+    padding-top: 5px;
+    height: 50px; /* Set the desired height of the editor */
+    max-height: 500px; /* Set a maximum height if needed */
+    overflow-y: auto; /* Enable vertical scrollbar if content exceeds the height */
+  }
+`;
+
+  
+  function RichTextEditorCell({ value, onValueChange }) {
+    const quillRef = useRef(null);
+    const [isFocused, setIsFocused] = useState(false);
+  
+    const handleFocus = () => {
+      setIsFocused(true);
+    };
+  
+    const handleBlur = () => {
+      setIsFocused(false);
+    };
+  
+    return (
+      <EditorContainer className={`rich-text-editor ${isFocused ? 'focused' : ''}`}>
+        <ReactQuill
+          ref={quillRef}
+          value={value}
+          onChange={onValueChange}
+          modules={modules}
+          theme="snow"
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+        />
+      </EditorContainer>
+    );
+  }
 
 
 function getCurrentDate() {
@@ -31,6 +95,107 @@ function getCurrentDate() {
 
 
 function SubmissionForm(){
+
+    const [isEditorFocused, setIsEditorFocused] = useState(false);
+    const editorRef = useRef(null);
+    const [editorHtml, setEditorHtml] = useState('');
+    const [todos, setTodos] = useState([]);
+    const [nextToken, setNextToken] = useState(null);
+    const [filteredTodos, setFilteredTodos] = useState([]);
+    const [onTrackCheck, setOnTrackCheck]=useState(true);
+    const [delayedCheck, setDelayedCheck]=useState(true);
+    const [missedCheck, setMissedCheck]=useState(true);
+
+    useEffect(() => {
+        if (editorRef.current && isEditorFocused) {
+          // When the editor is focused, show the toolbar options
+          editorRef.current.getEditor().getModule('toolbar').container.style.display = 'block';
+        } else if (editorRef.current) {
+          // When the editor loses focus, hide the toolbar options
+          editorRef.current.getEditor().getModule('toolbar').container.style.display = 'none';
+        }
+      }, [isEditorFocused]);
+
+
+  
+  
+    const filterTodos = () => {
+      let filtered = todos.filter((todo) => {
+        if (
+          (onTrackCheck && todo.status === 'onTrack') ||
+          (delayedCheck && todo.status === 'delayed') ||
+          (missedCheck && todo.status === 'missed')
+        ) {
+          return true;
+        }
+        return false;
+      });
+      setFilteredTodos(filtered);
+      console.log(filtered)
+    };
+  
+    useEffect(() => {
+      const fetchData = async () =>  {
+        try {
+          const response = await API.graphql(
+            graphqlOperation(listTodos, {
+              // limit: paginationModel.pageSize,
+              nextToken: nextToken,
+            })
+          );
+  
+          // Check for GraphQL errors in the response
+          if (response.errors) {
+            console.error('GraphQL Errors:', response.errors);
+            // Handle GraphQL errors here, e.g., show an error message to the user
+            return;
+          }
+  
+          const responseData = response.data.listTodos;
+          console.log(responseData)
+          const todoItems = responseData.items.map((todo) => ({
+            id: todo.id,
+            projectName: todo.projectName,
+            projectVersion: todo.projectVersion,
+            programContent: todo.programContent,
+            releaseType: todo.releaseType,
+            status: todo.status,
+            releaseStatus: todo.releaseStatus,
+            platform: todo.platform_type,
+            ccoTarget: todo.ccoTarget,
+            ccoActual: todo.ccoActual,
+            ccoCommit: todo.ccoCommit,
+            icDate: todo.icDate,
+            backlog: todo.backlog,
+            csldUrl: todo.csldUrl,
+            timsSitUrl: todo.timsSitUrl,
+            
+
+            // Add more fields as needed
+          }));
+          setTodos(todoItems);
+          // setFilteredTodos(todoItems);
+          setNextToken(responseData.nextToken); // Update the nextToken
+          filterTodos(); // Call filterTodos to update the filtered data
+  
+        } catch (error) {
+          console.error('Error fetching data:', error);
+          // Handle other errors here, e.g., show an error message to the user
+        }
+      }
+  
+      fetchData();
+    }, [nextToken]);
+  
+    // [paginationModel, nextToken]
+  
+    useEffect(() => {
+      filterTodos(); // Call filterTodos to update the filtered data
+    }, [onTrackCheck, delayedCheck, missedCheck, todos]);
+
+
+
+
     const formRef = useRef(null);
     const [successMessage, setSuccessMessage] = useState('');
     const [validationErrors, setValidationErrors] = useState({
@@ -56,7 +221,7 @@ function SubmissionForm(){
         let isValid = true;
     
         // Define an array of valid input field names
-        const validFieldNames = ["projectName", "projectVersion", "ccoCommit", "ccoTarget", "ccoActual", "icDate","programContent", "platform_type", "status", "releaseStatus", "releaseType", "csldUrl", "timsSitUrl"];
+        const validFieldNames = ["projectName", "projectVersion", "ccoCommit", "ccoTarget", "ccoActual", "icDate", "platform_type", "status", "releaseType", "csldUrl", "timsSitUrl", "releaseStatus", "programContent"];
     
         // Perform validation based on the input field name
         if (validFieldNames.includes(name)) {
@@ -68,14 +233,15 @@ function SubmissionForm(){
             [name]: !isValid,
         }));
     };
-    
-    
+
+
     
 
     const submitForm = async (e) => {
         e.preventDefault()
         const formData = new FormData(e.target)
         const payload = Object.fromEntries(formData)
+        setEnableUpdate(false)
 
         // Validate fields before submitting
         const hasErrors = Object.values(validationErrors).some((error) => error);
@@ -100,14 +266,35 @@ function SubmissionForm(){
         }
 
     }
+
+
+    const [selectedProject, setSelectedProject] = useState(null);
+    const updateOptions = filteredTodos.map(todo => ({ value: todo, label: todo.projectName }));
+    const [enableUpdate, setEnableUpdate] = useState(false);
+
+    useEffect(() => {
+        if (selectedProject) {
+            setEditorHtml(selectedProject.programContent || '');
+        }
+    }, [selectedProject]);
+ 
+      
     return (
         <Box sx={{ marginLeft: 8 }}>
+            <div style={{width: '15%', marginLeft:'40px'}} hidden={enableUpdate}>
+            <Button variant="secondary" size="sm" onClick={() => setEnableUpdate(true)}>
+            Update existing project
+        </Button>
+            </div>
+            <div style={{width: '45%', marginLeft:'40px'}} hidden={!enableUpdate}>
+            <Select placeholder='Select project to update' options={updateOptions} onChange={(selectedOption) => setSelectedProject(selectedOption.value)} ></Select>
+            </div>
         <Form ref={formRef} onSubmit={submitForm}>
         {successMessage && <div className="alert alert-success">{successMessage}</div>}
         <Container> 
         {/* <h12 class= "mt-3 text-muted d-flex justify-content-end"> *Mandatory Fields </h12> */}
         <Row className="reduce-top-padding">
-        <Col>
+        <Col xs={12} md={6}>
         <Form.Group className='pb-2 fw-bold text-muted mt-4 align-items-left'>
                             <OverlayTrigger
                                 placement="top"
@@ -117,8 +304,8 @@ function SubmissionForm(){
                                     </Tooltip>
                                 }
                             >
-                                <div>
-                                    <Form.Label> Project Name*</Form.Label>
+                                <div className="d-flex align-items-center">
+                                <Form.Label className="mr-2" style={{ whiteSpace: 'nowrap' }}>Project Name*</Form.Label>
                                     <FormControl
                                         type="text"
                                         name="projectName"
@@ -128,6 +315,8 @@ function SubmissionForm(){
                                         className={`form-control ${
                                             validationErrors.projectName ? 'is-invalid' : ''
                                         } form-control-sm`}
+                                        defaultValue={selectedProject?.projectName}
+                                        style={{ width: '87%', overflow: 'hidden' }}
                                     />
                                 </div>
                             </OverlayTrigger>
@@ -136,7 +325,7 @@ function SubmissionForm(){
                             )}
                         </Form.Group>
         </Col>
-        <Col>
+        <Col xs={12} md={6}>
         <Form.Group className='pb-2 fw-bold text-muted mt-4 align-items-left'>
                             <OverlayTrigger
                                 placement="top"
@@ -146,8 +335,8 @@ function SubmissionForm(){
                                     </Tooltip>
                                 }
                             >
-                                <div>
-                                    <Form.Label> Project Version*</Form.Label>
+                                <div className="d-flex align-items-center">
+                                <Form.Label className="mr-2" style={{ whiteSpace: 'nowrap' }}>Project Version*</Form.Label>
                                     <FormControl
                                         type="text"
                                         name="projectVersion"
@@ -157,6 +346,8 @@ function SubmissionForm(){
                                         className={`form-control ${
                                             validationErrors.projectVersion ? 'is-invalid' : ''
                                         } form-control-sm`}
+                                        defaultValue={selectedProject?.projectVersion}
+                                        style={{ width: '86%', overflow: 'hidden' }}
                                     />
                                 </div>
                             </OverlayTrigger>
@@ -187,7 +378,9 @@ function SubmissionForm(){
                                 required
                                 onChange={handleInputChange}
                                 className={`form-control ${validationErrors.ccoCommit ? 'is-invalid' : ''} form-control-sm`}
+                                defaultValue={selectedProject?.ccoCommit}
                             />
+                                
                             {validationErrors.ccoCommit && (
                                 <div className="invalid-feedback">GA Commit is required.</div>
                             )}
@@ -212,6 +405,7 @@ function SubmissionForm(){
                                 required
                                 onChange={handleInputChange}
                                 className={`form-control ${validationErrors.ccoTarget ? 'is-invalid' : ''} form-control-sm`}
+                                defaultValue={selectedProject?.ccoTarget}
                             />
                             {validationErrors.ccoTarget && (
                                 <div className="invalid-feedback">GA Target is required.</div>
@@ -239,6 +433,7 @@ function SubmissionForm(){
                                 required
                                 onChange={handleInputChange}
                                 className={`form-control ${validationErrors.ccoActual ? 'is-invalid' : ''} form-control-sm`}
+                                defaultValue={selectedProject?.ccoActual}
                             />
                             {validationErrors.ccoActual && (
                                 <div className="invalid-feedback">GA Actual is required.</div>
@@ -263,6 +458,7 @@ function SubmissionForm(){
                                 required
                                 onChange={handleInputChange}
                                 className={`form-control ${validationErrors.icDate ? 'is-invalid' : ''} form-control-sm`}
+                                defaultValue={selectedProject?.icDate}
                             />
                             {validationErrors.icDate && (
                                 <div className="invalid-feedback">IC Date is required.</div>
@@ -285,9 +481,11 @@ function SubmissionForm(){
                                 <Form.Label>Program Status*</Form.Label>
                             </OverlayTrigger>
                             <Form.Select
+                                id='formSelect'
                                 name="status"
                                 required
                                 onChange={handleInputChange}
+                                value={selectedProject?.status}
                                 className={`form-control ${
                                     validationErrors.status ? 'is-invalid' : ''
                                 } form-control-sm`}
@@ -321,6 +519,7 @@ function SubmissionForm(){
                                 className={`form-control ${
                                     validationErrors.platform_type ? 'is-invalid' : ''
                                 } form-control-sm`}
+                                value={selectedProject?.platform}
                             >
                                 <option value="">-Select-</option>
                                 <option value="csaas">CSaaS</option>
@@ -354,6 +553,7 @@ function SubmissionForm(){
                                 className={`form-control ${
                                     validationErrors.releaseStatus ? 'is-invalid' : ''
                                 } form-control-sm`}
+                                value={selectedProject?.releaseStatus}
                             >
                                 <option value="">-Select-</option>
                                 <option value="ic">IC</option>
@@ -385,6 +585,7 @@ function SubmissionForm(){
                                 className={`form-control ${
                                     validationErrors.releaseType ? 'is-invalid' : ''
                                 } form-control-sm`}
+                                value={selectedProject?.releaseType}
                             >
                                 <option value="">-Select-</option>
                                 <option value="option1">Feature</option>
@@ -410,15 +611,12 @@ function SubmissionForm(){
                             >
                                 <Form.Label>Program Content*</Form.Label>
                             </OverlayTrigger>
-                            <Form.Control
-                                size="sm"
-                                name="programContent"
-                                as="textarea"
-                                aria-label="With textarea"
-                                rows={1}
-                                onChange={handleInputChange}
-                            />
-                        </Form.Group>
+                            <RichTextEditorCell
+                                value={editorHtml}
+                                onValueChange={setEditorHtml}
+                                defaultValue={selectedProject?.programContent}
+                                />
+                        </Form.Group> 
                     </Col>
                     <Col>
                         <Form.Group className='pb-2 fw-bold text-muted mt-3 align-items-left'>
@@ -439,6 +637,7 @@ function SubmissionForm(){
                                 className={`form-control ${
                                     validationErrors.csldUrl ? 'is-invalid' : ''
                                 } form-control-sm`}
+                                defaultValue={selectedProject?.csldUrl}
                             />
                             {validationErrors.csldUrl && (
                                 <div className="invalid-feedback">
@@ -470,6 +669,7 @@ function SubmissionForm(){
                 className={`form-control ${
                     validationErrors.timsSitUrl ? 'is-invalid' : ''
                 } form-control-sm`}
+                defaultValue={selectedProject?.timsSitUrl}
             />
             {validationErrors.timsSitUrl && (
                 <div className="invalid-feedback">
@@ -478,8 +678,10 @@ function SubmissionForm(){
             )}
         </Form.Group>
     </Col>
-    <Col xs={2} className="d-flex align-items-end mt-4">
-        <Button variant="primary" type="submit" className="w-100" size="sm">
+    </Row>
+    <Row className="mt-3">
+    <Col className="d-flex justify-content-center">
+    <Button variant="primary" type="submit" size="sm">
             Submit
         </Button>
     </Col>
