@@ -1,12 +1,15 @@
 import {FormControl, OverlayTrigger, Tooltip} from 'react-bootstrap'
-import React, {useState, useRef} from 'react';
+import React, {useState, useEffect, useRef } from 'react';
 import "./submission_form.css";
 import Button from 'react-bootstrap/Button'
+import styled from 'styled-components'; 
 import Form from 'react-bootstrap/Form';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css'; 
 import Box from '@mui/material/Box';
 import { API, graphqlOperation } from 'aws-amplify';
 import { createTodo } from '../graphql/mutations.js';
@@ -15,6 +18,65 @@ import { createTodo } from '../graphql/mutations.js';
 
 //import FormText from 'react-bootstrap/FormText'
 
+
+const modules = {
+    toolbar: [
+      [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
+      ['bold', 'italic', 'underline'],
+      [{ 'color': [] }],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+    ],
+    clipboard: {
+      matchVisual: false,
+    },
+  };
+  
+  const EditorContainer = styled.div`
+  .ql-toolbar {
+    display: none;
+  }
+
+  &.focused .ql-toolbar {
+    display: block;
+  }
+
+  .ql-editor {
+    border-top: 2px solid #ccc;
+    padding-top: 5px;
+    height: 50px; /* Set the desired height of the editor */
+    max-height: 500px; /* Set a maximum height if needed */
+    overflow-y: auto; /* Enable vertical scrollbar if content exceeds the height */
+  }
+`;
+
+  
+  function RichTextEditorCell({ value, onValueChange }) {
+    const quillRef = useRef(null);
+    const [isFocused, setIsFocused] = useState(false);
+  
+    const handleFocus = () => {
+      setIsFocused(true);
+    };
+  
+    const handleBlur = () => {
+      setIsFocused(false);
+    };
+  
+    return (
+      <EditorContainer className={`rich-text-editor ${isFocused ? 'focused' : ''}`}>
+        <ReactQuill
+          ref={quillRef}
+          value={value}
+          onChange={onValueChange}
+          modules={modules}
+          theme="snow"
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+        />
+      </EditorContainer>
+    );
+  }
+  
 
 function getCurrentDate() {
     const today = new Date();
@@ -32,6 +94,9 @@ function getCurrentDate() {
 
 function SubmissionForm(){
     const formRef = useRef(null);
+    const [isEditorFocused, setIsEditorFocused] = useState(false);
+    const editorRef = useRef(null);
+    const [editorHtml, setEditorHtml] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
     const [validationErrors, setValidationErrors] = useState({
         projectName: false,
@@ -49,6 +114,17 @@ function SubmissionForm(){
     });
     
 
+    
+
+  useEffect(() => {
+    if (editorRef.current && isEditorFocused) {
+      // When the editor is focused, show the toolbar options
+      editorRef.current.getEditor().getModule('toolbar').container.style.display = 'block';
+    } else if (editorRef.current) {
+      // When the editor loses focus, hide the toolbar options
+      editorRef.current.getEditor().getModule('toolbar').container.style.display = 'none';
+    }
+  }, [isEditorFocused]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -106,65 +182,68 @@ function SubmissionForm(){
         <Container> 
         {/* <h12 class= "mt-3 text-muted d-flex justify-content-end"> *Mandatory Fields </h12> */}
         <Row className="reduce-top-padding">
-        <Col>
+    <Col xs={12} md={6}>
         <Form.Group className='pb-2 fw-bold text-muted mt-4 align-items-left'>
-                            <OverlayTrigger
-                                placement="top"
-                                overlay={
-                                    <Tooltip id={`tooltip-projectName`}>
-                                        Additional information about Project Name.
-                                    </Tooltip>
-                                }
-                            >
-                                <div>
-                                    <Form.Label> Project Name*</Form.Label>
-                                    <FormControl
-                                        type="text"
-                                        name="projectName"
-                                        placeholder="Enter project name"
-                                        required
-                                        onChange={handleInputChange}
-                                        className={`form-control ${
-                                            validationErrors.projectName ? 'is-invalid' : ''
-                                        } form-control-sm`}
-                                    />
-                                </div>
-                            </OverlayTrigger>
-                            {validationErrors.projectName && (
-                                <div className="invalid-feedback">Project Name is required.</div>
-                            )}
-                        </Form.Group>
-        </Col>
-        <Col>
+            <OverlayTrigger
+                placement="top"
+                overlay={
+                    <Tooltip id={`tooltip-projectName`}>
+                        Additional information about Project Name.
+                    </Tooltip>
+                }
+            >
+                <div className="d-flex align-items-center">
+                    <Form.Label className="mr-2" style={{ whiteSpace: 'nowrap' }}>Project Name*</Form.Label>
+                    <FormControl
+                        type="text"
+                        name="projectName"
+                        placeholder="Enter project name"
+                        required
+                        onChange={handleInputChange}
+                        className={`form-control col-8 col-md-10 ${
+                            validationErrors.projectName ? 'is-invalid' : ''
+                        } form-control-sm`}
+                        style={{ width: '87%', overflow: 'hidden' }}
+                    />
+                </div>
+            </OverlayTrigger>
+            {validationErrors.projectName && (
+                <div className="invalid-feedback">Project Name is required.</div>
+            )}
+        </Form.Group>
+    </Col>
+    <Col xs={12} md={6}>
         <Form.Group className='pb-2 fw-bold text-muted mt-4 align-items-left'>
-                            <OverlayTrigger
-                                placement="top"
-                                overlay={
-                                    <Tooltip id={`tooltip-projectVersion`}>
-                                        Additional information about Project Version.
-                                    </Tooltip>
-                                }
-                            >
-                                <div>
-                                    <Form.Label> Project Version*</Form.Label>
-                                    <FormControl
-                                        type="text"
-                                        name="projectVersion"
-                                        placeholder="Enter project version"
-                                        required
-                                        onChange={handleInputChange}
-                                        className={`form-control ${
-                                            validationErrors.projectVersion ? 'is-invalid' : ''
-                                        } form-control-sm`}
-                                    />
-                                </div>
-                            </OverlayTrigger>
-                            {validationErrors.projectVersion && (
-                                <div className="invalid-feedback">Project Version is required.</div>
-                            )}
-                        </Form.Group>
-        </Col>
-        </Row>
+            <OverlayTrigger
+                placement="top"
+                overlay={
+                    <Tooltip id={`tooltip-projectVersion`}>
+                        Additional information about Project Version.
+                    </Tooltip>
+                }
+            >
+                <div className="d-flex align-items-center">
+                    <Form.Label className="mr-2" style={{ whiteSpace: 'nowrap' }}>Project Version*</Form.Label>
+                    <FormControl
+                        type="text"
+                        name="projectVersion"
+                        placeholder="Enter project version"
+                        required
+                        onChange={handleInputChange}
+                        className={`form-control col-8 col-md-10 ${
+                            validationErrors.projectVersion ? 'is-invalid' : ''
+                        } form-control-sm`}
+                        style={{ width: '86%', overflow: 'hidden' }}
+                    />
+                </div>
+            </OverlayTrigger>
+            {validationErrors.projectVersion && (
+                <div className="invalid-feedback">Project Version is required.</div>
+            )}
+        </Form.Group>
+    </Col>
+</Row>
+
     
         <Row>
                     <Col>
@@ -270,7 +349,7 @@ function SubmissionForm(){
                     </Col>
                 </Row>
 
-        <Row>
+        <Row >
         <Col>
                         <Form.Group className='pl-4 pb-2 fw-bold text-muted mt-3 mb-2 mr-5'>
                             <OverlayTrigger
@@ -397,26 +476,26 @@ function SubmissionForm(){
                 </Row>
         
         <Row>
-                    <Col>
-                        <Form.Group className='pb-2 fw-bold text-muted mt-3 align-items-left'>
-                            <OverlayTrigger
-                                placement="top"
-                                overlay={
-                                    <Tooltip id={`tooltip-programContent`}>
-                                        Enter program content details.
-                                    </Tooltip>
-                                }
-                            >
-                                <Form.Label>Program Content*</Form.Label>
-                            </OverlayTrigger>
-                            <Form.Control
-                                size="sm"
-                                as="textarea"
-                                aria-label="With textarea"
-                                rows={1}
-                            />
-                        </Form.Group>
-                    </Col>
+        <Col>
+          <Form.Group className='pb-2 fw-bold text-muted mt-3 align-items-left'>
+            <OverlayTrigger
+              placement="top"
+              overlay={
+                <Tooltip id={`tooltip-programContent`}>
+                  Enter program content details.
+                </Tooltip>
+              }
+            >
+              <Form.Label>Program Content*</Form.Label>
+            </OverlayTrigger>
+            <RichTextEditorCell
+              value={editorHtml}
+              onValueChange={setEditorHtml}
+            />
+          </Form.Group>
+        </Col>
+
+
                     <Col>
                         <Form.Group className='pb-2 fw-bold text-muted mt-3 align-items-left'>
                             <OverlayTrigger
@@ -433,6 +512,7 @@ function SubmissionForm(){
                                 size="sm"
                                 type="text"
                                 name="csldUrl"
+                                placeholder="CSDL URL"
                                 className={`form-control ${
                                     validationErrors.csldUrl ? 'is-invalid' : ''
                                 } form-control-sm`}
@@ -464,6 +544,7 @@ function SubmissionForm(){
                 size="sm"
                 type="text"
                 name="timsSitUrl"
+                placeholder="Test URL"
                 className={`form-control ${
                     validationErrors.timsSitUrl ? 'is-invalid' : ''
                 } form-control-sm`}
@@ -475,8 +556,10 @@ function SubmissionForm(){
             )}
         </Form.Group>
     </Col>
-    <Col xs={2} className="d-flex align-items-end mt-4">
-        <Button variant="primary" type="submit" className="w-100" size="sm">
+    </Row>
+    <Row className="mt-3">
+    <Col className="d-flex justify-content-center">
+        <Button variant="primary" type="submit" size="sm">
             Submit
         </Button>
     </Col>
