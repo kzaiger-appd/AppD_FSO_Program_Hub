@@ -11,10 +11,14 @@ import Button from 'react-bootstrap/Button';
 import { listTodos } from '../graphql/queries'; 
 import styled from 'styled-components';
 import { updateTodo } from '../graphql/mutations'; 
+import "./ExecutiveSummary.css";
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from 'react-toastify';
 
 const modules1 = {
   toolbar: [
-    [{ 'header': '1'}, {'header': '2'}, { 'font': [] }],
+    [{ 'header': '1'}, {'header': '2'}],
     ['bold', 'italic', 'underline'],
     [{ 'color': [] }],
     [{ 'background': [] }],
@@ -39,6 +43,7 @@ const EditorContainer = styled.div`
     border-right: 0px;
     border-bottom: 0px;
   }
+
 `;
 
 function RichTextEditorCell({ value, onValueChange, id }) {
@@ -71,12 +76,12 @@ function RichTextEditorCell({ value, onValueChange, id }) {
         })
       );
 
-      console.log('Response:', response);
   
       if (response.errors) {
         console.error('GraphQL Errors:', response.errors);
         // Handle GraphQL errors here and provide feedback to the user
       } else {
+        toast.success('Update successful');
         console.log('Update successful');
         onValueChange(value); // Update parent state with the new value
       }
@@ -276,7 +281,7 @@ function ExecutiveSummary() {
   
 
   const columns = [
-    { field: 'projectName', headerName: <Typography>Project Name</Typography>,  width: 20, flex: 1, renderCell: (params) => (
+    { field: 'projectName', headerName: <Typography>Project Name</Typography>, headerClassName: 'super-app-theme--header',  width: 20, flex: 1, renderCell: (params) => (
       <div>
         <Typography>{params.row.projectName || ''}</Typography>
         <Typography color="textSecondary">{params.row.programContent || ''}</Typography>
@@ -284,6 +289,7 @@ function ExecutiveSummary() {
     )},
     {
       field: 'status',
+      headerClassName: 'super-app-theme--header',
       headerName: <Typography>Status</Typography>,
       width: 10,
       flex: 1,
@@ -306,6 +312,7 @@ function ExecutiveSummary() {
   {
     field: 'platform',
     headerName: <Typography>Platform</Typography>,
+    headerClassName: 'super-app-theme--header',
     width: 10,
     flex: 1,
     editable: true,
@@ -320,6 +327,7 @@ function ExecutiveSummary() {
     field: 'cco',
     headerAlign: 'left',
     headerName: <Typography>Launch</Typography>,
+    headerClassName: 'super-app-theme--header',
     width: 15,
     flex: 1,
     renderCell: (params) => (
@@ -331,6 +339,7 @@ function ExecutiveSummary() {
   {
     field: 'executiveSummary',
     headerName: <Typography>Executive Summary</Typography>,
+    headerClassName: 'super-app-theme--header',
     sortable: false,
     editable: true,
     width: 15,
@@ -392,6 +401,7 @@ function ExecutiveSummary() {
           disableRowSelectionOnClick
         />
       </Box>
+      <ToastContainer />
     </>
   );
 }

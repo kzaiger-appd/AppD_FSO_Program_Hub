@@ -12,6 +12,7 @@ import Container from 'react-bootstrap/Container';
 import Navbar from 'react-bootstrap/Navbar';
 import Button from 'react-bootstrap/Button';
 import styled from 'styled-components';
+import "./ExecutiveSummary.css";
 
 
 const modules1 = {
@@ -229,7 +230,7 @@ function Appd_cloud(){
     };
 
   const columns = [
-    { field: 'projectName', headerName: <Typography>Project Name</Typography>,  width: 20, flex: 1, renderCell: (params) => (
+    { field: 'projectName', headerName: <Typography>Project Name</Typography>, headerClassName: 'super-app-theme--header',  width: 20, flex: 1, renderCell: (params) => (
       <div>
         <Typography>{params.row.projectName || ''}</Typography>
         <Typography color="textSecondary">{params.row.releaseContent || ''}</Typography>
@@ -238,6 +239,7 @@ function Appd_cloud(){
     {
       field: 'status',
       headerName: <Typography>Status</Typography>,
+      headerClassName: 'super-app-theme--header',
       width: 10,
       flex: 1,
       editable: false,
@@ -259,6 +261,7 @@ function Appd_cloud(){
   {
     field: 'platform',
     headerName: <Typography>Platform</Typography>,
+    headerClassName: 'super-app-theme--header',
     width: 10,
     flex: 1,
     editable: true,
@@ -273,6 +276,7 @@ function Appd_cloud(){
     field: 'cco',
     headerAlign: 'left',
     headerName: <Typography>Launch</Typography>,
+    headerClassName: 'super-app-theme--header',
     width: 15,
     flex: 1,
     renderCell: (params) => (
@@ -284,6 +288,7 @@ function Appd_cloud(){
   {
     field: 'executiveSummary',
     headerName: <Typography>Executive Summary</Typography>,
+    headerClassName: 'super-app-theme--header',
     sortable: false,
     editable: true,
     width: 15,

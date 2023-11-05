@@ -23,7 +23,7 @@ import Select from 'react-select';
 
 const modules = {
     toolbar: [
-      [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
+      [{ 'header': '1' }, { 'header': '2' }],
       ['bold', 'italic', 'underline'],
       [{ 'color': [] }],
       [{ 'list': 'ordered' }, { 'list': 'bullet' }],
@@ -271,12 +271,25 @@ function SubmissionForm(){
     const [selectedProject, setSelectedProject] = useState(null);
     const updateOptions = filteredTodos.map(todo => ({ value: todo, label: todo.projectName }));
     const [enableUpdate, setEnableUpdate] = useState(false);
+    const [selectedStatus, setSelectedStatus] = useState();
+    const [selectedPlatform, setSelectedPlatform] = useState();
+    const [selectedReleaseStatus, setSelectedReleaseStatus] = useState();
+    const [selectedProgramType, setSelectedProgramType] = useState();
 
     useEffect(() => {
         if (selectedProject) {
+            setSelectedStatus(selectedProject.status);
+            setSelectedPlatform(selectedProject.platform);
+            setSelectedReleaseStatus(selectedProject.releaseStatus);
+            setSelectedProgramType(selectedProject.releaseType);
             setEditorHtml(selectedProject.programContent || '');
+
         }
     }, [selectedProject]);
+
+   
+
+
  
       
     return (
@@ -484,8 +497,11 @@ function SubmissionForm(){
                                 id='formSelect'
                                 name="status"
                                 required
-                                onChange={handleInputChange}
-                                value={selectedProject?.status}
+                                onChange={(e) => {
+                                    handleInputChange(e);
+                                    setSelectedStatus(e.target.value); 
+                                }}
+                                value={selectedStatus}
                                 className={`form-control ${
                                     validationErrors.status ? 'is-invalid' : ''
                                 } form-control-sm`}
@@ -515,11 +531,14 @@ function SubmissionForm(){
                             <Form.Select
                                 name="platform_type"
                                 required
-                                onChange={handleInputChange}
+                                onChange={(e) => {
+                                    handleInputChange(e);
+                                    setSelectedPlatform(e.target.value); 
+                                }}
                                 className={`form-control ${
                                     validationErrors.platform_type ? 'is-invalid' : ''
                                 } form-control-sm`}
-                                value={selectedProject?.platform}
+                                value={selectedPlatform}
                             >
                                 <option value="">-Select-</option>
                                 <option value="csaas">CSaaS</option>
@@ -549,11 +568,14 @@ function SubmissionForm(){
                             <Form.Select
                                 name="releaseStatus"
                                 required
-                                onChange={handleInputChange}
+                                onChange={(e) => {
+                                    handleInputChange(e);
+                                    setSelectedReleaseStatus(e.target.value); 
+                                }}
                                 className={`form-control ${
                                     validationErrors.releaseStatus ? 'is-invalid' : ''
                                 } form-control-sm`}
-                                value={selectedProject?.releaseStatus}
+                                value={selectedReleaseStatus}
                             >
                                 <option value="">-Select-</option>
                                 <option value="ic">IC</option>
@@ -581,11 +603,14 @@ function SubmissionForm(){
                                 size="sm"
                                 name="releaseType"
                                 required
-                                onChange={handleInputChange}
+                                onChange={(e) => {
+                                    handleInputChange(e);
+                                    setSelectedProgramType(e.target.value); 
+                                }}
                                 className={`form-control ${
                                     validationErrors.releaseType ? 'is-invalid' : ''
                                 } form-control-sm`}
-                                value={selectedProject?.releaseType}
+                                value={selectedProgramType}
                             >
                                 <option value="">-Select-</option>
                                 <option value="option1">Feature</option>
