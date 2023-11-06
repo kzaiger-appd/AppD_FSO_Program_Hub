@@ -12,7 +12,7 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import styled from 'styled-components'; 
 import { API, graphqlOperation } from 'aws-amplify';
-import { createTodo } from '../graphql/mutations.js';
+import { createTodo, updateTodo } from '../graphql/mutations.js';
 import { listTodos } from '../graphql/queries'; // Adjust the import path as needed
 // import Tooltip from 'react-bootstrap/Tooltip';
 //import {Text} from 'react-bootstrap/Text'
@@ -52,7 +52,7 @@ const modules = {
 `;
 
   
-  function RichTextEditorCell({ value, onValueChange }) {
+function RichTextEditorCell({ value, onValueChange, placeholder }) {
     const quillRef = useRef(null);
     const [isFocused, setIsFocused] = useState(false);
   
@@ -74,10 +74,12 @@ const modules = {
           theme="snow"
           onFocus={handleFocus}
           onBlur={handleBlur}
+          placeholder={placeholder} // Add placeholder prop here
         />
       </EditorContainer>
     );
   }
+  
 
 
 function getCurrentDate() {
@@ -253,9 +255,33 @@ function SubmissionForm(){
 
 
         try {
-            const response = await API.graphql(graphqlOperation(createTodo, { input: payload }));
-            console.log('Data stored in Cosmos DB:', response);
+            if (selectedProject) {
+                // Updating existing entry
+                const updatedData = {
+                    id: selectedProject.id,
+                    // Include other fields you want to update
+                    ...payload,
+                };
+    
+                const response = await API.graphql(graphqlOperation(updateTodo, { input: updatedData }));
+                console.log('Data updated in Cosmos DB:', response);
+            } else {
+                // Creating new entry
+                const response = await API.graphql(graphqlOperation(createTodo, { input: payload }));
+                console.log('Data stored in Cosmos DB:', response);
+            }  
             formRef.current.reset();
+
+             // Reset the editor content
+            setEditorHtml('');
+
+            // Reset other state variables if necessary
+            setSelectedProject(null);
+            setSelectedStatus('');
+            setSelectedPlatform('');
+            setSelectedReleaseStatus('');
+            setSelectedProgramType('');
+
             window.scrollTo(0, 0);
             setSuccessMessage('Form submitted successfully!');
             setTimeout(() => {
@@ -639,70 +665,75 @@ function SubmissionForm(){
                             <RichTextEditorCell
                                 value={editorHtml}
                                 onValueChange={setEditorHtml}
+                                placeholder="Enter program content..."
                                 defaultValue={selectedProject?.programContent}
                                 />
                         </Form.Group> 
                     </Col>
                     <Col>
-                        <Form.Group className='pb-2 fw-bold text-muted mt-3 align-items-left'>
-                            <OverlayTrigger
-                                placement="top"
-                                overlay={
-                                    <Tooltip id={`tooltip-csldUrl`}>
-                                        Enter the CSDL URL.
-                                    </Tooltip>
-                                }
-                            >
-                                <Form.Label>CSDL URL*</Form.Label>
-                            </OverlayTrigger>
-                            <FormControl
-                                size="sm"
-                                type="text"
-                                name="csldUrl"
-                                className={`form-control ${
-                                    validationErrors.csldUrl ? 'is-invalid' : ''
-                                } form-control-sm`}
-                                defaultValue={selectedProject?.csldUrl}
-                            />
-                            {validationErrors.csldUrl && (
-                                <div className="invalid-feedback">
-                                    CSDL URL is required.
-                                </div>
-                            )}
-                            {/* <p className="text-left text-size text-danger"><small>* If CSDL is not applicable please mark it as N/A</small></p> */}
-                        </Form.Group>
-                    </Col>
+    <Form.Group className='pb-2 fw-bold text-muted mt-3 align-items-left'>
+        <OverlayTrigger
+            placement="top"
+            overlay={
+                <Tooltip id={`tooltip-csldUrl`}>
+                    Enter the CSDL URL.
+                </Tooltip>
+            }
+        >
+            <Form.Label>CSDL URL*</Form.Label>
+        </OverlayTrigger>
+        <FormControl
+            size="sm"
+            type="text"
+            name="csldUrl"
+            placeholder="Enter CSDL URL"
+            className={`form-control ${
+                validationErrors.csldUrl ? 'is-invalid' : ''
+            } form-control-sm`}
+            defaultValue={selectedProject?.csldUrl}
+        />
+        {validationErrors.csldUrl && (
+            <div className="invalid-feedback">
+                CSDL URL is required.
+            </div>
+        )}
+        {/* <p className="text-left text-size text-danger"><small>* If CSDL is not applicable please mark it as N/A</small></p> */}
+    </Form.Group>
+</Col>
+
 </Row>
 
 <Row>
-    <Col xs={6}>
-        <Form.Group className='pb-2 fw-bold text-muted mt-3 align-items-left'>
-            <OverlayTrigger
-                placement="top"
-                overlay={
-                    <Tooltip id={`tooltip-timsSitUrl`}>
-                        Enter the test URL.
-                    </Tooltip>
-                }
-            >
-                <Form.Label>Test URL*</Form.Label>
-            </OverlayTrigger>
-            <FormControl
-                size="sm"
-                type="text"
-                name="timsSitUrl"
-                className={`form-control ${
-                    validationErrors.timsSitUrl ? 'is-invalid' : ''
-                } form-control-sm`}
-                defaultValue={selectedProject?.timsSitUrl}
-            />
-            {validationErrors.timsSitUrl && (
-                <div className="invalid-feedback">
-                    Test URL is required.
-                </div>
-            )}
-        </Form.Group>
-    </Col>
+<Col xs={6}>
+    <Form.Group className='pb-2 fw-bold text-muted mt-3 align-items-left'>
+        <OverlayTrigger
+            placement="top"
+            overlay={
+                <Tooltip id={`tooltip-timsSitUrl`}>
+                    Enter the test URL.
+                </Tooltip>
+            }
+        >
+            <Form.Label>Test URL*</Form.Label>
+        </OverlayTrigger>
+        <FormControl
+            size="sm"
+            type="text"
+            name="timsSitUrl"
+            placeholder="Enter Test URL"
+            className={`form-control ${
+                validationErrors.timsSitUrl ? 'is-invalid' : ''
+            } form-control-sm`}
+            defaultValue={selectedProject?.timsSitUrl}
+        />
+        {validationErrors.timsSitUrl && (
+            <div className="invalid-feedback">
+                Test URL is required.
+            </div>
+        )}
+    </Form.Group>
+</Col>
+
     </Row>
     <Row className="mt-3">
     <Col className="d-flex justify-content-center">
