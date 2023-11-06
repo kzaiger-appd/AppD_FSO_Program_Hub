@@ -5,8 +5,25 @@ export const getTodo = /* GraphQL */ `
   query GetTodo($id: ID!) {
     getTodo(id: $id) {
       id
-      name
-      description
+      projectName
+      projectVersion
+      backlog
+      ccoActual
+      ccoCommit
+      ccoTarget
+      csldUrl
+      icDate
+      platform_type
+      psirtClosed
+      psirtOpened
+      releaseStatus
+      releaseType
+      rvVerified
+      programContent
+      ssAttribute
+      status
+      timsSitUrl
+      tsAttribute
       createdAt
       updatedAt
       __typename
@@ -36,11 +53,15 @@ export const listTodos = /* GraphQL */ `
         releaseStatus
         releaseType
         rvVerified
+        programContent
         ssAttribute
         status
         timsSitUrl
         tsAttribute
-        }
+        createdAt
+        updatedAt
+        __typename
+      }
       nextToken
       __typename
     }

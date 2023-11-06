@@ -22,10 +22,14 @@ export const createTodo = /* GraphQL */ `
       releaseStatus
       releaseType
       rvVerified
+      programContent
       ssAttribute
       status
       timsSitUrl
       tsAttribute
+      createdAt
+      updatedAt
+      __typename
     }
   }
 `;
@@ -50,10 +54,14 @@ export const updateTodo = /* GraphQL */ `
       releaseStatus
       releaseType
       rvVerified
+      programContent
       ssAttribute
       status
       timsSitUrl
       tsAttribute
+      createdAt
+      updatedAt
+      __typename
     }
   }
 `;
@@ -64,8 +72,25 @@ export const deleteTodo = /* GraphQL */ `
   ) {
     deleteTodo(input: $input, condition: $condition) {
       id
-      name
-      description
+      projectName
+      projectVersion
+      backlog
+      ccoActual
+      ccoCommit
+      ccoTarget
+      csldUrl
+      icDate
+      platform_type
+      psirtClosed
+      psirtOpened
+      releaseStatus
+      releaseType
+      rvVerified
+      programContent
+      ssAttribute
+      status
+      timsSitUrl
+      tsAttribute
       createdAt
       updatedAt
       __typename

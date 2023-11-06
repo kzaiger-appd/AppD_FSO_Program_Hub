@@ -6,7 +6,16 @@
 
 import * as React from "react";
 import { GridProps, TextFieldProps } from "@aws-amplify/ui-react";
-import { EscapeHatchProps } from "@aws-amplify/ui-react/internal";
+export declare type EscapeHatchProps = {
+    [elementHierarchy: string]: Record<string, unknown>;
+} | null;
+export declare type VariantValues = {
+    [key: string]: string;
+};
+export declare type Variant = {
+    variantValues: VariantValues;
+    overrides: EscapeHatchProps;
+};
 export declare type ValidationResponse = {
     hasError: boolean;
     errorMessage?: string;
@@ -27,6 +36,7 @@ export declare type TodoCreateFormInputValues = {
     releaseStatus?: string;
     releaseType?: string;
     rvVerified?: string;
+    programContent?: string;
     ssAttribute?: string;
     status?: string;
     timsSitUrl?: string;
@@ -47,6 +57,7 @@ export declare type TodoCreateFormValidationValues = {
     releaseStatus?: ValidationFunction<string>;
     releaseType?: ValidationFunction<string>;
     rvVerified?: ValidationFunction<string>;
+    programContent?: ValidationFunction<string>;
     ssAttribute?: ValidationFunction<string>;
     status?: ValidationFunction<string>;
     timsSitUrl?: ValidationFunction<string>;
@@ -69,6 +80,7 @@ export declare type TodoCreateFormOverridesProps = {
     releaseStatus?: PrimitiveOverrideProps<TextFieldProps>;
     releaseType?: PrimitiveOverrideProps<TextFieldProps>;
     rvVerified?: PrimitiveOverrideProps<TextFieldProps>;
+    programContent?: PrimitiveOverrideProps<TextFieldProps>;
     ssAttribute?: PrimitiveOverrideProps<TextFieldProps>;
     status?: PrimitiveOverrideProps<TextFieldProps>;
     timsSitUrl?: PrimitiveOverrideProps<TextFieldProps>;
