@@ -278,13 +278,19 @@ function ExecutiveSummary() {
     setMissedCheck(!missedCheck);
     filterTodos(); // Call filterTodos to update the filtered data
   };
+
+  const stripHtmlTags = (html) => {
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = html;
+    return tempDiv.textContent || tempDiv.innerText || "";
+  };
   
 
   const columns = [
     { field: 'projectName', headerName: <Typography>Project Name</Typography>, headerClassName: 'super-app-theme--header',  width: 20, flex: 1, renderCell: (params) => (
       <div>
         <Typography>{params.row.projectName || ''}</Typography>
-        <Typography color="textSecondary">{params.row.programContent || ''}</Typography>
+        <Typography color="textSecondary">{stripHtmlTags(params.row.programContent) || ''}</Typography>
       </div>
     )},
     {
