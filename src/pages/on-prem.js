@@ -12,6 +12,10 @@ import Button from 'react-bootstrap/Button';
 import { listTodos } from '../graphql/queries'; // Adjust the import path as needed
 import styled from 'styled-components';
 import "./ExecutiveSummary.css";
+import { updateTodo } from '../graphql/mutations'; 
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from 'react-toastify';
 
 const modules1 = {
     toolbar: [
@@ -42,16 +46,48 @@ const EditorContainer = styled.div`
   }
 `;
 
-function RichTextEditorCell({ value, onValueChange }) {
+function RichTextEditorCell({ value, onValueChange, id }) {
   const quillRef = useRef(null);
   const [isFocused, setIsFocused] = useState(false);
+  const [localValue, setLocalValue] = useState(value);
 
   const handleFocus = () => {
     setIsFocused(true);
   };
 
-  const handleBlur = () => {
+  const handleBlur = async () => {
     setIsFocused(false);
+    onValueChange((newValue) => {
+      console.log('Before API Call - Value:', newValue); // Add this line
+      return newValue;
+    });
+
+    console.log('Before API Call - Value:', value); // Add this line
+
+    try {
+      const response = await API.graphql(
+        graphqlOperation(updateTodo, {
+          input: {
+            id: id,
+            programContent: value,
+            // Include other fields to update as needed
+          },
+        })
+      );
+
+  
+      if (response.errors) {
+        console.error('GraphQL Errors:', response.errors);
+        // Handle GraphQL errors here and provide feedback to the user
+      } else {
+        toast.success('Update successful');
+        console.log('Update successful');
+        onValueChange(value); // Update parent state with the new value
+      }
+    } catch (error) {
+      console.error('Error updating data:', error);
+      // Handle other errors here and provide feedback to the user
+    }
   };
 
   const handleToolbar = (event) => {
@@ -68,8 +104,11 @@ function RichTextEditorCell({ value, onValueChange }) {
     <EditorContainer className={`rich-text-editor ${isFocused ? 'focused' : ''}`}>
       <ReactQuill
         ref={quillRef}
-        value={value}
-        onChange={onValueChange}
+        value={localValue}
+        onChange={(content) => {
+          setLocalValue(content); // Update local state
+          onValueChange(content); // Update parent state immediately
+        }}
         modules={modules1}
         theme="snow"
         onFocus={handleFocus}
@@ -111,80 +150,6 @@ function formatStatus(status) {
   }
 }
 
-const columns = [
-    { field: 'projectName', headerName: <Typography>Project Name</Typography>, headerClassName: 'super-app-theme--header',  width: 20, flex: 1, renderCell: (params) => (
-        <div>
-          <Typography>{params.row.projectName || ''}</Typography>
-          <Typography color="textSecondary">{params.row.releaseContent || ''}</Typography>
-        </div>
-      )},
-    {
-      field: 'status',
-      headerName: <Typography>Status</Typography>,
-      headerClassName: 'super-app-theme--header',
-      width: 10,
-      flex: 1,
-      editable: false,
-      type: "singleSelect",
-      renderCell: (params) => (
-        <div
-          style={{
-            background:
-              params.value === "onTrack" ? 'lightgreen' :
-              params.value === "delayed" ? 'gold' :
-              params.value === "missed" ? 'salmon' : 'red',
-            borderRadius: '5px',
-          }}
-        >
-          {formatStatus(params.row.status)}
-        </div>
-      ),
-    },
-    {
-      field: 'platform',
-      headerName: <Typography>Platform</Typography>,
-      headerClassName: 'super-app-theme--header',
-      width: 10,
-      flex: 1,
-      editable: true,
-      type: "singleSelect",
-      renderCell: (params) => (
-        <div>
-          {formatPlatform(params.value)}
-        </div>
-      ),
-    },
-    {
-      field: 'cco',
-      headerAlign: 'left',
-      headerName: <Typography>Launch</Typography>,
-      headerClassName: 'super-app-theme--header',
-      width: 15,
-      flex: 1,
-      renderCell: (params) => (
-        <div>
-          <Typography>Planned <Typography color="textSecondary">{params.row.ccoTarget || ''}</Typography></Typography>
-          <Typography>Actual <Typography color="textSecondary">{params.row.ccoActual || ''}</Typography></Typography>
-        </div>
-      )},
-    {
-      field: 'executiveSummary',
-      headerName: <Typography>Executive Summary</Typography>,
-      headerClassName: 'super-app-theme--header',
-      sortable: false,
-      width: 15,
-      flex: 1,
-      renderCell: (params) => (
-        <RichTextEditorCell
-          value={params.row.backlog || ''}
-          onValueChange={(content) => {
-            params.row.executiveSummary= content;
-          }}
-        />
-      ),
-    },
-  ];
-
 function On_prem(){
     const [todos, setTodos] = useState([]);
     const [nextToken, setNextToken] = useState(null);
@@ -195,7 +160,7 @@ function On_prem(){
     
     
     const [paginationModel, setPaginationModel] = React.useState({
-        pageSize: 5,
+        pageSize: 50,
         page: 0,
       });
 
@@ -220,6 +185,16 @@ function On_prem(){
         }
         return counts;
       };
+
+      const updateRowInParent = (updatedRow) => {
+        // Create a new array of todos with the updated row
+        const updatedTodos = todos.map((todo) =>
+          todo.id === updatedRow.id ? updatedRow : todo
+        );
+    
+        // Update the state with the new array of todos
+        setTodos(updatedTodos);
+      };
   
       const filterTodos = () => {
         let filtered = todos.filter((todo) => {
@@ -238,7 +213,7 @@ function On_prem(){
     // Filter rows with platform 'On_Prem'
     // const filteredRows = rows.filter(row => row.platform === 'On-Prem');
     useEffect(() => {
-      async function fetchData() {
+      const fetchData = async () =>  {
         try {
           const response = await API.graphql(
             graphqlOperation(listTodos, {
@@ -260,6 +235,7 @@ function On_prem(){
           const todoItems = filteredTodos.map((todo) => ({
             id: todo.id,
             projectName: todo.projectName,
+            programContent: todo.programContent,
             releaseContent: todo.releaseContent,
             status: todo.status,
             platform: todo.platform_type,
@@ -301,6 +277,86 @@ function On_prem(){
       filterTodos(); // Call filterTodos to update the filtered data
     };
 
+    const columns = [
+      { field: 'projectName', headerName: <Typography>Project Name</Typography>, headerClassName: 'super-app-theme--header',  width: 20, flex: 1, renderCell: (params) => (
+          <div>
+            <Typography>{params.row.projectName || ''}</Typography>
+            <Typography color="textSecondary">{params.row.releaseContent || ''}</Typography>
+          </div>
+        )},
+      {
+        field: 'status',
+        headerName: <Typography>Status</Typography>,
+        headerClassName: 'super-app-theme--header',
+        width: 10,
+        flex: 1,
+        editable: false,
+        type: "singleSelect",
+        renderCell: (params) => (
+          <div
+            style={{
+              background:
+                params.value === "onTrack" ? 'lightgreen' :
+                params.value === "delayed" ? 'gold' :
+                params.value === "missed" ? 'salmon' : 'red',
+              borderRadius: '5px',
+            }}
+          >
+            {formatStatus(params.row.status)}
+          </div>
+        ),
+      },
+      {
+        field: 'platform',
+        headerName: <Typography>Platform</Typography>,
+        headerClassName: 'super-app-theme--header',
+        width: 10,
+        flex: 1,
+        editable: true,
+        type: "singleSelect",
+        renderCell: (params) => (
+          <div>
+            {formatPlatform(params.value)}
+          </div>
+        ),
+      },
+      {
+        field: 'cco',
+        headerAlign: 'left',
+        headerName: <Typography>Launch</Typography>,
+        headerClassName: 'super-app-theme--header',
+        width: 15,
+        flex: 1,
+        renderCell: (params) => (
+          <div>
+            <Typography>Planned <Typography color="textSecondary">{params.row.ccoTarget || ''}</Typography></Typography>
+            <Typography>Actual <Typography color="textSecondary">{params.row.ccoActual || ''}</Typography></Typography>
+          </div>
+        )},
+      {
+        field: 'Program Content',
+        headerName: <Typography>Program Content</Typography>,
+        headerClassName: 'super-app-theme--header',
+        sortable: false,
+        editable: true,
+        width: 15,
+        flex: 2,
+        renderCell: (params) => (
+          <RichTextEditorCell
+            value={params.row.programContent || ''}
+            onValueChange={(content) => {
+              const updatedRow = { ...params.row, programContent: content };
+              // Call a function to update the state of the parent component with the updated row
+              updateRowInParent(updatedRow);
+            }}
+  
+            id={params.row.id}
+            
+          />
+        ),
+      },
+    ];
+
     return (
       <>
       <Box    display="flex"
@@ -314,13 +370,13 @@ function On_prem(){
         checked={onTrackCheck}
         onChange={handleOnTrackChange}
       />
-        <Button onClick={() => handleOnTrackChange()} variant="success" style={{color:'black', background: 'lightgreen', marginRight: '250px' }}>On Track: {statusCounts['onTrack']}</Button>
+        <Button onClick={() => handleOnTrackChange()} variant="success" style={{color:'black', background: 'lightgreen', marginRight: '60px' }}>On Track: {statusCounts['onTrack']}</Button>
         <input
         type="checkbox"
         checked={delayedCheck}
         onChange={handleDelayedChange}
       />
-        <Button onClick={() => handleDelayedChange()} variant="warning" style={{ background: 'gold' ,  marginRight: '250px'}}>Delayed: {statusCounts.delayed}</Button>
+        <Button onClick={() => handleDelayedChange()} variant="warning" style={{ background: 'gold' ,  marginRight: '60px'}}>Delayed: {statusCounts.delayed}</Button>
         <input
         type="checkbox"
         checked={missedCheck}
@@ -338,7 +394,7 @@ function On_prem(){
             rows={filteredTodos}
             getRowHeight={() => 'auto'}
             columns={columns}
-            pageSizeOptions={[5]}
+            pageSizeOptions={[50]}
             // checkboxSelection
             disableRowSelectionOnClick
           />

@@ -13,6 +13,10 @@ import Navbar from 'react-bootstrap/Navbar';
 import Button from 'react-bootstrap/Button';
 import styled from 'styled-components';
 import "./ExecutiveSummary.css";
+import { updateTodo } from '../graphql/mutations'; 
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from 'react-toastify';
 
 
 const modules1 = {
@@ -44,16 +48,49 @@ const EditorContainer = styled.div`
   }
 `;
 
-function RichTextEditorCell({ value, onValueChange }) {
+function RichTextEditorCell({ value, onValueChange, id }) {
   const quillRef = useRef(null);
   const [isFocused, setIsFocused] = useState(false);
+  const [localValue, setLocalValue] = useState(value);
 
   const handleFocus = () => {
     setIsFocused(true);
   };
 
-  const handleBlur = () => {
+  const handleBlur = async () => {
     setIsFocused(false);
+
+    onValueChange((newValue) => {
+      console.log('Before API Call - Value:', newValue); // Add this line
+      return newValue;
+    });
+
+    console.log('Before API Call - Value:', value); // Add this line
+
+    try {
+      const response = await API.graphql(
+        graphqlOperation(updateTodo, {
+          input: {
+            id: id,
+            programContent: value,
+            // Include other fields to update as needed
+          },
+        })
+      );
+
+  
+      if (response.errors) {
+        console.error('GraphQL Errors:', response.errors);
+        // Handle GraphQL errors here and provide feedback to the user
+      } else {
+        toast.success('Update successful');
+        console.log('Update successful');
+        onValueChange(value); // Update parent state with the new value
+      }
+    } catch (error) {
+      console.error('Error updating data:', error);
+      // Handle other errors here and provide feedback to the user
+    }
   };
 
   const handleToolbar = (event) => {
@@ -70,8 +107,11 @@ function RichTextEditorCell({ value, onValueChange }) {
     <EditorContainer className={`rich-text-editor ${isFocused ? 'focused' : ''}`}>
       <ReactQuill
         ref={quillRef}
-        value={value}
-        onChange={onValueChange}
+        value={localValue}
+        onChange={(content) => {
+          setLocalValue(content); // Update local state
+          onValueChange(content); // Update parent state immediately
+        }}
         modules={modules1}
         theme="snow"
         onFocus={handleFocus}
@@ -123,7 +163,7 @@ function Appd_cloud(){
     const [missedCheck, setMissedCheck]=useState(true);
     
     const [paginationModel, setPaginationModel] = React.useState({
-        pageSize: 5,
+        pageSize: 50,
         page: 0,
       });
 
@@ -149,6 +189,16 @@ function Appd_cloud(){
       return counts;
     };
 
+    const updateRowInParent = (updatedRow) => {
+      // Create a new array of todos with the updated row
+      const updatedTodos = todos.map((todo) =>
+        todo.id === updatedRow.id ? updatedRow : todo
+      );
+  
+      // Update the state with the new array of todos
+      setTodos(updatedTodos);
+    };
+
     const filterTodos = () => {
       let filtered = todos.filter((todo) => {
         if (
@@ -164,7 +214,7 @@ function Appd_cloud(){
     };
 
     useEffect(() => {
-      async function fetchData() {
+      const fetchData = async () =>  {
         try {
           const response = await API.graphql(
             graphqlOperation(listTodos, {
@@ -286,19 +336,24 @@ function Appd_cloud(){
       </div>
     )},
   {
-    field: 'executiveSummary',
-    headerName: <Typography>Executive Summary</Typography>,
+    field: 'Program Content',
+    headerName: <Typography>Program Content</Typography>,
     headerClassName: 'super-app-theme--header',
     sortable: false,
     editable: true,
     width: 15,
-    flex: 1,
+    flex: 2,
     renderCell: (params) => (
       <RichTextEditorCell
-        value={params.row.backlog || ''}
+        value={params.row.programContent || ''}
         onValueChange={(content) => {
-          params.row.executiveSummary=content;
+          const updatedRow = { ...params.row, programContent: content };
+          // Call a function to update the state of the parent component with the updated row
+          updateRowInParent(updatedRow);
         }}
+
+        id={params.row.id}
+
       />
     ),
   },
@@ -317,13 +372,13 @@ function Appd_cloud(){
         checked={onTrackCheck}
         onChange={handleOnTrackChange}
       />
-        <Button onClick={() => handleOnTrackChange()} variant="success" style={{color:'black', background: 'lightgreen', marginRight: '250px' }}>On Track: {statusCounts['onTrack']}</Button>
+        <Button onClick={() => handleOnTrackChange()} variant="success" style={{color:'black', background: 'lightgreen', marginRight: '60px' }}>On Track: {statusCounts['onTrack']}</Button>
         <input
         type="checkbox"
         checked={delayedCheck}
         onChange={handleDelayedChange}
       />
-        <Button onClick={() => handleDelayedChange()} variant="warning" style={{ background: 'gold' ,  marginRight: '250px'}}>Delayed: {statusCounts.delayed}</Button>
+        <Button onClick={() => handleDelayedChange()} variant="warning" style={{ background: 'gold' ,  marginRight: '60px'}}>Delayed: {statusCounts.delayed}</Button>
         <input
         type="checkbox"
         checked={missedCheck}
@@ -341,11 +396,12 @@ function Appd_cloud(){
             rows={filteredTodos}
             getRowHeight={() => 'auto'}
             columns={columns}
-            pageSizeOptions={[5]}
+            pageSizeOptions={[50]}
             // checkboxSelection
             disableRowSelectionOnClick
           />
         </Box>
+        <ToastContainer />
       </>
     );
 }
