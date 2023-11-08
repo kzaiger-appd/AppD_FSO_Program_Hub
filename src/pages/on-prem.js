@@ -277,6 +277,12 @@ function On_prem(){
       filterTodos(); // Call filterTodos to update the filtered data
     };
 
+    const stripHtmlTags = (html) => {
+      const tempDiv = document.createElement("div");
+      tempDiv.innerHTML = html;
+      return tempDiv.textContent || tempDiv.innerText || "";
+    };
+
     const columns = [
       { field: 'projectName', headerName: <Typography>Project Name</Typography>, headerClassName: 'super-app-theme--header',  width: 20, flex: 1, renderCell: (params) => (
           <div>
@@ -329,8 +335,8 @@ function On_prem(){
         flex: 1,
         renderCell: (params) => (
           <div>
-            <Typography>Planned <Typography color="textSecondary">{params.row.ccoTarget || ''}</Typography></Typography>
-            <Typography>Actual <Typography color="textSecondary">{params.row.ccoActual || ''}</Typography></Typography>
+            <Typography>GA Planned <Typography color="textSecondary">{params.row.ccoTarget || ''}</Typography></Typography>
+            <Typography>GA Target <Typography color="textSecondary">{params.row.ccoActual || ''}</Typography></Typography>
           </div>
         )},
       {
@@ -338,21 +344,13 @@ function On_prem(){
         headerName: <Typography>Program Content</Typography>,
         headerClassName: 'super-app-theme--header',
         sortable: false,
-        editable: true,
+        editable: false,
         width: 15,
         flex: 2,
         renderCell: (params) => (
-          <RichTextEditorCell
-            value={params.row.programContent || ''}
-            onValueChange={(content) => {
-              const updatedRow = { ...params.row, programContent: content };
-              // Call a function to update the state of the parent component with the updated row
-              updateRowInParent(updatedRow);
-            }}
-  
-            id={params.row.id}
-            
-          />
+          <div>
+            {stripHtmlTags(params.row.programContent) || ''}
+          </div>
         ),
       },
     ];

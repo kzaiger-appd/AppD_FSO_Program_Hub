@@ -218,7 +218,6 @@ function ExecutiveSummary() {
       try {
         const response = await API.graphql(
           graphqlOperation(listTodos, {
-            // limit: paginationModel.pageSize,
             nextToken: nextToken,
           })
         );
@@ -244,7 +243,6 @@ function ExecutiveSummary() {
           // Add more fields as needed
         }));
         setTodos(todoItems);
-        // setFilteredTodos(todoItems);
         setNextToken(responseData.nextToken); // Update the nextToken
         filterTodos(); // Call filterTodos to update the filtered data
 
@@ -256,8 +254,6 @@ function ExecutiveSummary() {
 
     fetchData();
   }, [nextToken]);
-
-  // [paginationModel, nextToken]
 
   useEffect(() => {
     filterTodos(); // Call filterTodos to update the filtered data
@@ -338,8 +334,8 @@ function ExecutiveSummary() {
     flex: 1,
     renderCell: (params) => (
       <div>
-        <Typography>Planned <Typography color="textSecondary">{params.row.ccoTarget || ''}</Typography></Typography>
-        <Typography>Actual <Typography color="textSecondary">{params.row.ccoActual || ''}</Typography></Typography>
+        <Typography>GA Planned <Typography color="textSecondary">{params.row.ccoTarget || ''}</Typography></Typography>
+        <Typography>GA Target <Typography color="textSecondary">{params.row.ccoActual || ''}</Typography></Typography>
       </div>
     )},
   {
