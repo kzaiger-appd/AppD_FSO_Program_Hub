@@ -13,6 +13,7 @@ import 'react-quill/dist/quill.snow.css';
 import styled from 'styled-components'; 
 import { API, graphqlOperation } from 'aws-amplify';
 import { createTodo, updateTodo } from '../graphql/mutations.js';
+import { onCreateTodo, onUpdateTodo } from '../graphql/subscriptions';
 import { listTodos } from '../graphql/queries'; // Adjust the import path as needed
 // import Tooltip from 'react-bootstrap/Tooltip';
 //import {Text} from 'react-bootstrap/Text'
@@ -107,6 +108,7 @@ function SubmissionForm(){
     const [onTrackCheck, setOnTrackCheck]=useState(true);
     const [delayedCheck, setDelayedCheck]=useState(true);
     const [missedCheck, setMissedCheck]=useState(true);
+    const [programContent, setProgramContent] = useState('');
 
     useEffect(() => {
         if (editorRef.current && isEditorFocused) {
@@ -119,7 +121,6 @@ function SubmissionForm(){
       }, [isEditorFocused]);
 
 
-  
   
     const filterTodos = () => {
       let filtered = todos.filter((todo) => {
@@ -240,21 +241,23 @@ function SubmissionForm(){
     
 
     const submitForm = async (e) => {
-        e.preventDefault()
-        const formData = new FormData(e.target)
-        const payload = Object.fromEntries(formData)
-        setEnableUpdate(false)
-
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const payload = Object.fromEntries(formData);
+        setEnableUpdate(false);
+    
         // Validate fields before submitting
         const hasErrors = Object.values(validationErrors).some((error) => error);
-
+    
         if (hasErrors) {
             console.log('Form has validation errors. Please check the fields.');
             return;
         }
-
-
+    
         try {
+            // Include programContent in the payload
+            payload.programContent = programContent;
+    
             if (selectedProject) {
                 // Updating existing entry
                 const updatedData = {
@@ -269,11 +272,14 @@ function SubmissionForm(){
                 // Creating new entry
                 const response = await API.graphql(graphqlOperation(createTodo, { input: payload }));
                 console.log('Data stored in Cosmos DB:', response);
-            }  
+            }
+    
             formRef.current.reset();
-
-             // Reset the editor content
+    
+            // Reset the editor content
             setEditorHtml('');
+            
+            setProgramContent('');
 
             // Reset other state variables if necessary
             setSelectedProject(null);
@@ -281,7 +287,7 @@ function SubmissionForm(){
             setSelectedPlatform('');
             setSelectedReleaseStatus('');
             setSelectedProgramType('');
-
+    
             window.scrollTo(0, 0);
             setSuccessMessage('Form submitted successfully!');
             setTimeout(() => {
@@ -290,9 +296,16 @@ function SubmissionForm(){
         } catch (error) {
             console.error('Error storing data:', error);
         }
-
-    }
-
+    };
+    
+    useEffect(() => {
+        // Set editor toolbar visibility
+        if (editorRef.current && isEditorFocused) {
+          editorRef.current.getEditor().getModule('toolbar').container.style.display = 'block';
+        } else if (editorRef.current) {
+          editorRef.current.getEditor().getModule('toolbar').container.style.display = 'none';
+        }
+      }, [isEditorFocused]);
 
     const [selectedProject, setSelectedProject] = useState(null);
     const updateOptions = filteredTodos.map(todo => ({ value: todo, label: todo.projectName }));
@@ -303,20 +316,66 @@ function SubmissionForm(){
     const [selectedProgramType, setSelectedProgramType] = useState();
 
     useEffect(() => {
+        // Update state based on selected project
         if (selectedProject) {
-            setSelectedStatus(selectedProject.status);
-            setSelectedPlatform(selectedProject.platform);
-            setSelectedReleaseStatus(selectedProject.releaseStatus);
-            setSelectedProgramType(selectedProject.releaseType);
-            setEditorHtml(selectedProject.programContent || '');
-
+          setSelectedStatus(selectedProject.status);
+          setSelectedPlatform(selectedProject.platform);
+          setSelectedReleaseStatus(selectedProject.releaseStatus);
+          setSelectedProgramType(selectedProject.releaseType);
+          setProgramContent(selectedProject.programContent || '');
         }
-    }, [selectedProject]);
+      }, [selectedProject]);
 
-   
+      useEffect(() => {
+        // Subscribe to onCreateTodo
+        const subscriptionCreate = API.graphql(graphqlOperation(onCreateTodo)).subscribe({
+          next: (eventData) => {
+            const newTodo = eventData.value.data.onCreateTodo;
+            setTodos((prevTodos) => [...prevTodos, newTodo]);
+            filterTodos();
+          },
+          error: (error) => {
+            console.error('Error subscribing to onCreateTodo:', error);
+          },
+        });
+    
+        // Subscribe to onUpdateTodo
+        const subscriptionUpdate = API.graphql(graphqlOperation(onUpdateTodo)).subscribe({
+          next: (eventData) => {
+            const updatedTodo = eventData.value.data.onUpdateTodo;
+            setTodos((prevTodos) => {
+              // Replace the existing todo with the updated one
+              const updatedTodos = prevTodos.map((todo) => (todo.id === updatedTodo.id ? updatedTodo : todo));
+              return updatedTodos;
+            });
+            filterTodos();
+          },
+          error: (error) => {
+            console.error('Error subscribing to onUpdateTodo:', error);
+          },
+        });
+    
+        return () => {
+          // Unsubscribe when the component unmounts
+          subscriptionCreate.unsubscribe();
+          subscriptionUpdate.unsubscribe();
+        };
+      }, [todos]); // Add any dependencies you need here
 
-
- 
+      const handleArchive = async (projectId) => {
+        try {
+          const updatedData = {
+            id: projectId,
+            archived: true,
+          };
+      
+          const response = await API.graphql(graphqlOperation(updateTodo, { input: updatedData }));
+          console.log('Data archived in Cosmos DB:', response);
+        } catch (error) {
+          console.error('Error archiving data:', error);
+        }
+      };
+    
       
     return (
         <Box sx={{ marginLeft: 8 }}>
@@ -663,11 +722,14 @@ function SubmissionForm(){
                                 <Form.Label>Program Content*</Form.Label>
                             </OverlayTrigger>
                             <RichTextEditorCell
-                                value={editorHtml}
-                                onValueChange={setEditorHtml}
-                                placeholder="Enter program content..."
-                                defaultValue={selectedProject?.programContent}
-                                />
+                            value={programContent}
+                            onValueChange={(value) => {
+                                setEditorHtml(value);
+                                setProgramContent(value);
+                            }}
+                            placeholder="Enter program content..."
+                        />
+
                         </Form.Group> 
                     </Col>
                     <Col>
