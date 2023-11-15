@@ -70,9 +70,9 @@ return (
                       <NavIcon><i className="fa fa-fw fa-desktop" style={{fontSize:"1.5em"}}></i></NavIcon>
                       <NavText>FSO and CNAO</NavText>
                   </NavItem>
-                  <NavItem eventKey="submission_form" style={{position: "relative"}} onClick ={() => setMyTitle("Submission Form")}>
+                  <NavItem eventKey="submission_form" style={{position: "relative"}} onClick ={() => setMyTitle("New Project Submission")}>
                       <NavIcon><i className="fa fa-pencil" style={{fontSize:"1.5em"}}></i></NavIcon>
-                      <NavText>Submission Form</NavText>
+                      <NavText>New/Update Project</NavText>
                   </NavItem >
   
   

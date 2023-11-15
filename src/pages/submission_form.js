@@ -314,6 +314,9 @@ function SubmissionForm(){
     const [selectedPlatform, setSelectedPlatform] = useState();
     const [selectedReleaseStatus, setSelectedReleaseStatus] = useState();
     const [selectedProgramType, setSelectedProgramType] = useState();
+    const [showArchiveConfirmation, setShowArchiveConfirmation] = useState(false);
+    const [confirmArchive, setConfirmArchive]=useState(false);
+
 
     useEffect(() => {
         // Update state based on selected project
@@ -379,14 +382,52 @@ function SubmissionForm(){
       
     return (
         <Box sx={{ marginLeft: 8 }}>
-            <div style={{width: '15%', marginLeft:'40px'}} hidden={enableUpdate}>
-            <Button variant="secondary" size="sm" onClick={() => setEnableUpdate(true)}>
-            Update existing project
+            <div style={{width: '20%', marginLeft:'40px'}} hidden={enableUpdate}>
+            <Button variant="primary" size="sm" onClick={() => setEnableUpdate(true)}>
+            Update/Archive existing project
         </Button>
             </div>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
             <div style={{width: '45%', marginLeft:'40px'}} hidden={!enableUpdate}>
-            <Select placeholder='Select project to update' options={updateOptions} onChange={(selectedOption) => setSelectedProject(selectedOption.value)} ></Select>
+            <Select placeholder='Select project to update or archive' options={updateOptions} onChange={(selectedOption) => setSelectedProject(selectedOption.value)} ></Select>
             </div>
+            <div style={{ marginLeft: '10px' }} hidden={!selectedStatus}>
+            <Button variant="danger" size="sm" onClick={() => setShowArchiveConfirmation(true)}>
+            Archive Project
+        </Button>
+        {showArchiveConfirmation && (
+    <div className="confirmation-dialog">
+      <p>Are you sure you want to archive this project?</p>
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={() => setShowArchiveConfirmation(false)}
+      >
+        Cancel
+      </Button>
+      <Button
+        variant="danger"
+        size="sm"
+        onClick={() => {
+          setShowArchiveConfirmation(false);
+          setConfirmArchive(true);
+          setEnableUpdate(false);
+          setSelectedProject();
+          setSelectedStatus(false);
+          setTimeout(() => {
+            setConfirmArchive(false);
+        }, 3000);
+          // Add the logic to perform the archive action here
+        }}
+      >
+        Confirm Archive
+      </Button>
+    </div>
+  )}
+  </div>
+  {confirmArchive && <div style={{marginLeft:'40px', marginTop:'10px'}} className="alert alert-success">{'Project has been archived'}</div>}
+            </div>
+
         <Form ref={formRef} onSubmit={submitForm}>
         {successMessage && <div className="alert alert-success">{successMessage}</div>}
         <Container> 

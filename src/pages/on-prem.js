@@ -242,6 +242,7 @@ function On_prem(){
             ccoTarget: todo.ccoTarget,
             ccoActual: todo.ccoActual,
             backlog: todo.backlog,
+            projectVersion: todo.projectVersion,
             // Add more fields as needed
           }));
           setTodos(todoItems);
@@ -283,78 +284,80 @@ function On_prem(){
       return tempDiv.textContent || tempDiv.innerText || "";
     };
 
-    const columns = [
-      { field: 'projectName', headerName: <Typography>Project Name</Typography>, headerClassName: 'super-app-theme--header',  width: 20, flex: 1, renderCell: (params) => (
-          <div>
-            <Typography>{params.row.projectName || ''}</Typography>
-            <Typography color="textSecondary">{params.row.releaseContent || ''}</Typography>
-          </div>
-        )},
-      {
-        field: 'status',
-        headerName: <Typography>Status</Typography>,
-        headerClassName: 'super-app-theme--header',
-        width: 10,
-        flex: 1,
-        editable: false,
-        type: "singleSelect",
-        renderCell: (params) => (
-          <div
-            style={{
-              background:
-                params.value === "onTrack" ? 'lightgreen' :
-                params.value === "delayed" ? 'gold' :
-                params.value === "missed" ? 'salmon' : 'red',
-              borderRadius: '5px',
-            }}
-          >
-            {formatStatus(params.row.status)}
-          </div>
-        ),
-      },
-      {
-        field: 'platform',
-        headerName: <Typography>Platform</Typography>,
-        headerClassName: 'super-app-theme--header',
-        width: 10,
-        flex: 1,
-        editable: true,
-        type: "singleSelect",
-        renderCell: (params) => (
-          <div>
-            {formatPlatform(params.value)}
-          </div>
-        ),
-      },
-      {
-        field: 'cco',
-        headerAlign: 'left',
-        headerName: <Typography>Launch</Typography>,
-        headerClassName: 'super-app-theme--header',
-        width: 15,
-        flex: 1,
-        renderCell: (params) => (
-          <div>
-            <Typography>GA Planned <Typography color="textSecondary">{params.row.ccoTarget || ''}</Typography></Typography>
-            <Typography>GA Target <Typography color="textSecondary">{params.row.ccoActual || ''}</Typography></Typography>
-          </div>
-        )},
-      {
-        field: 'Program Content',
-        headerName: <Typography>Program Content</Typography>,
-        headerClassName: 'super-app-theme--header',
-        sortable: false,
-        editable: false,
-        width: 15,
-        flex: 2,
-        renderCell: (params) => (
-          <div>
-            {stripHtmlTags(params.row.programContent) || ''}
-          </div>
-        ),
-      },
-    ];
+    const textstyle={ fontFamily: 'Arial', fontSize: '15px' }  
 
+  const columns = [
+    { field: 'projectName', headerName: <Typography style={textstyle}>Project Name</Typography>, headerClassName: 'super-app-theme--header',  width: 20, flex: 2.5, renderCell: (params) => (
+      <div>
+        <Typography style={textstyle}>{params.row.projectName || ''} - {params.row.projectVersion || ''}</Typography>
+        <Typography style={textstyle} color="textSecondary">{params.row.releaseContent || ''}</Typography>
+      </div>
+    )},
+    {
+      field: 'status',
+      headerName: <Typography style={textstyle}>Status</Typography>,
+      headerClassName: 'super-app-theme--header',
+      width: 10,
+      flex: 1,
+      editable: false,
+      type: "singleSelect",
+      renderCell: (params) => (
+        <div
+          style={{
+            background:
+              params.value === "onTrack" ? 'lightgreen' :
+              params.value === "delayed" ? 'gold' :
+              params.value === "missed" ? 'salmon' : 'red',
+            borderRadius: '5px',fontFamily: 'Arial', fontSize: '15px',
+          }}
+        >
+          {formatStatus(params.row.status)}
+        </div>
+      ),
+    },
+  {
+    field: 'platform',
+    headerName: <Typography style={textstyle}>Platform</Typography>,
+    headerClassName: 'super-app-theme--header',
+    width: 10,
+    flex: 1,
+    editable: false,
+    type: "singleSelect",
+    renderCell: (params) => (
+      <div style={textstyle}>
+        {formatPlatform(params.value)}
+      </div>
+    ),
+  },
+  {
+    field: 'cco',
+    headerAlign: 'left',
+    headerName: <Typography style={textstyle}>Launch</Typography>,
+    headerClassName: 'super-app-theme--header',
+    width: 15,
+    flex: 1,
+    renderCell: (params) => (
+      <div>
+        <Typography style={textstyle}>GA Planned <Typography style={textstyle} color="textSecondary">{params.row.ccoTarget || ''}</Typography></Typography>
+        <Typography style={textstyle}>GA Target <Typography style={textstyle} color="textSecondary">{params.row.ccoActual || ''}</Typography></Typography>
+      </div>
+    )},
+  {
+    field: 'Program Content',
+    headerName: <Typography style={textstyle}>Program Content</Typography>,
+    headerClassName: 'super-app-theme--header',
+    sortable: false,
+    editable: false,
+    width: 15,
+    flex: 2.5,
+    renderCell: (params) => (
+      <div style={textstyle}>
+        {params.row.programContent ? stripHtmlTags(params.row.programContent) : ''}
+      </div>
+    ),
+  },
+  ];
+      
     return (
       <>
       <Box    display="flex"
@@ -368,19 +371,19 @@ function On_prem(){
         checked={onTrackCheck}
         onChange={handleOnTrackChange}
       />
-        <Button onClick={() => handleOnTrackChange()} variant="success" style={{color:'black', background: 'lightgreen', marginRight: '60px' }}>On Track: {statusCounts['onTrack']}</Button>
+        <Button onClick={() => handleOnTrackChange()} variant="success" style={{color:'black', background: 'lightgreen', marginRight: '60px',fontFamily: 'Arial', fontSize: '15px' }}>On Track: {statusCounts['onTrack']}</Button>
         <input
         type="checkbox"
         checked={delayedCheck}
         onChange={handleDelayedChange}
       />
-        <Button onClick={() => handleDelayedChange()} variant="warning" style={{ background: 'gold' ,  marginRight: '60px'}}>Delayed: {statusCounts.delayed}</Button>
+        <Button onClick={() => handleDelayedChange()} variant="warning" style={{ background: 'gold' ,  marginRight: '60px' ,fontFamily: 'Arial', fontSize: '15px'}}>Delayed: {statusCounts.delayed}</Button>
         <input
         type="checkbox"
         checked={missedCheck}
         onChange={handleMissedChange}
       />
-        <Button onClick={() => handleMissedChange()} variant="danger" style={{ color: 'black', background:'salmon' }}>Missed: {statusCounts.missed}</Button>
+        <Button onClick={() => handleMissedChange()} variant="danger" style={{ color: 'black', background:'salmon',fontFamily: 'Arial', fontSize: '15px' }}>Missed: {statusCounts.missed}</Button>
           <Navbar.Brand href="#"></Navbar.Brand>
         </Container>
       </Navbar>  
@@ -397,8 +400,9 @@ function On_prem(){
             disableRowSelectionOnClick
           />
         </Box>
-        </>
-      );
+        <ToastContainer />
+      </>
+    );
 }
 
 export default On_prem;

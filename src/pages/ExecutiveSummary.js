@@ -30,10 +30,17 @@ const modules1 = {
   }
 };
 
+const textstyle={ fontFamily: 'Arial', fontSize: '15px' }
+
 const EditorContainer = styled.div`
   .ql-toolbar {
     display: none;
   }
+
+  .ql-container {
+    font-size: 15px;
+    font-family:'Arial'
+}
 
   &.focused .ql-toolbar {
     display: block;
@@ -101,9 +108,9 @@ function RichTextEditorCell({ value, onValueChange, id }) {
 
   return (
     <div onBlur={handleToolbar} style = {{
-      width: 470
+      width: 400
     }}>
-    <EditorContainer className={`rich-text-editor ${isFocused ? 'focused' : ''}`}>
+    <EditorContainer  className={`rich-text-editor ${isFocused ? 'focused' : ''}`}>
       <ReactQuill
         ref={quillRef}
         value={localValue} // Use localValue, not value
@@ -240,6 +247,7 @@ function ExecutiveSummary() {
           ccoTarget: todo.ccoTarget,
           ccoActual: todo.ccoActual,
           backlog: todo.backlog,
+          projectVersion: todo.projectVersion,
           // Add more fields as needed
         }));
         setTodos(todoItems);
@@ -280,19 +288,22 @@ function ExecutiveSummary() {
     tempDiv.innerHTML = html;
     return tempDiv.textContent || tempDiv.innerText || "";
   };
+
+
+
   
 
   const columns = [
-    { field: 'projectName', headerName: <Typography>Project Name</Typography>, headerClassName: 'super-app-theme--header',  width: 20, flex: 1, renderCell: (params) => (
+    { field: 'projectName', headerName: <Typography style={textstyle}>Project Name</Typography>, headerClassName: 'super-app-theme--header',  width: 20, flex: 2.5, renderCell: (params) => (
       <div>
-        <Typography>{params.row.projectName || ''}</Typography>
-        <Typography color="textSecondary">{stripHtmlTags(params.row.programContent) || ''}</Typography>
+        <Typography style={textstyle}>{params.row.projectName || ''} - {params.row.projectVersion || ''}</Typography>
+        <Typography style={textstyle} color="textSecondary">{stripHtmlTags(params.row.programContent) || ''}</Typography>
       </div>
     )},
     {
       field: 'status',
       headerClassName: 'super-app-theme--header',
-      headerName: <Typography>Status</Typography>,
+      headerName: <Typography style={textstyle}>Status</Typography>,
       width: 10,
       flex: 1,
       editable: false,
@@ -304,7 +315,7 @@ function ExecutiveSummary() {
               params.value === "onTrack" ? 'lightgreen' :
               params.value === "delayed" ? 'gold' :
               params.value === "missed" ? 'salmon' : 'red',
-            borderRadius: '5px',
+            borderRadius: '5px', fontSize: '15px', fontFamily: 'Arial'
           }}
         >
           {formatStatus(params.row.status)}
@@ -313,14 +324,14 @@ function ExecutiveSummary() {
     },
   {
     field: 'platform',
-    headerName: <Typography>Platform</Typography>,
+    headerName: <Typography style={textstyle}>Platform</Typography>,
     headerClassName: 'super-app-theme--header',
     width: 10,
     flex: 1,
-    editable: true,
+    editable: false,
     type: "singleSelect",
     renderCell: (params) => (
-      <div>
+      <div style={textstyle}>
         {formatPlatform(params.value)}
       </div>
     ),
@@ -328,26 +339,27 @@ function ExecutiveSummary() {
   {
     field: 'cco',
     headerAlign: 'left',
-    headerName: <Typography>Launch</Typography>,
+    headerName: <Typography style={textstyle}>Launch</Typography>,
     headerClassName: 'super-app-theme--header',
     width: 15,
     flex: 1,
     renderCell: (params) => (
       <div>
-        <Typography>GA Planned <Typography color="textSecondary">{params.row.ccoTarget || ''}</Typography></Typography>
-        <Typography>GA Target <Typography color="textSecondary">{params.row.ccoActual || ''}</Typography></Typography>
+        <Typography style={textstyle}>GA Planned <Typography style={textstyle} color="textSecondary">{params.row.ccoTarget || ''}</Typography></Typography>
+        <Typography style={textstyle}>GA Target <Typography style={textstyle} color="textSecondary">{params.row.ccoActual || ''}</Typography></Typography>
       </div>
     )},
   {
     field: 'executiveSummary',
-    headerName: <Typography>Executive Summary</Typography>,
+    headerName: <Typography style={textstyle}>Executive Summary</Typography>,
     headerClassName: 'super-app-theme--header',
     sortable: false,
     editable: true,
     width: 15,
-    flex: 2,
+    flex: 2.5,
     renderCell: (params) => (
       <RichTextEditorCell
+      style={textstyle}
         value={params.row.backlog || ''}
         onValueChange={(content) => {
           const updatedRow = { ...params.row, backlog: content };
@@ -375,19 +387,19 @@ function ExecutiveSummary() {
       checked={onTrackCheck}
       onChange={handleOnTrackChange}
     />
-      <Button onClick={() => handleOnTrackChange()} variant="success" style={{color:'black', background: 'lightgreen', marginRight: '60px' }}>On Track: {statusCounts['onTrack']}</Button>
+      <Button onClick={() => handleOnTrackChange()} variant="success" style={{color:'black', background: 'lightgreen', marginRight: '60px',fontFamily: 'Arial', fontSize: '15px'  }}>On Track: {statusCounts['onTrack']}</Button>
       <input
       type="checkbox"
       checked={delayedCheck}
       onChange={handleDelayedChange}
     />
-      <Button onClick={() => handleDelayedChange()} variant="warning" style={{ background: 'gold' ,  marginRight: '60px'}}>Delayed: {statusCounts.delayed}</Button>
+      <Button onClick={() => handleDelayedChange()} variant="warning" style={{ background: 'gold' ,  marginRight: '60px' ,fontFamily: 'Arial', fontSize: '15px' }}>Delayed: {statusCounts.delayed}</Button>
       <input
       type="checkbox"
       checked={missedCheck}
       onChange={handleMissedChange}
     />
-      <Button onClick={() => handleMissedChange()} variant="danger" style={{ color: 'black', background:'salmon' }}>Missed: {statusCounts.missed}</Button>
+      <Button onClick={() => handleMissedChange()} variant="danger" style={{ color: 'black', background:'salmon',fontFamily: 'Arial', fontSize: '15px'  }}>Missed: {statusCounts.missed}</Button>
         <Navbar.Brand href="#"></Navbar.Brand>
       </Container>
     </Navbar>  
