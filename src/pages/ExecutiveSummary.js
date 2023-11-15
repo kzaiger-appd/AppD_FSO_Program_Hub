@@ -110,8 +110,9 @@ function RichTextEditorCell({ value, onValueChange, id }) {
     <div onBlur={handleToolbar} style = {{
       width: 400
     }}>
-    <EditorContainer  className={`rich-text-editor ${isFocused ? 'focused' : ''}`}>
+    <EditorContainer  className={`rich-text-editor ${isFocused ? 'focused' : ''}`} onDoubleClick={handleFocus}>
       <ReactQuill
+        readOnly={!isFocused}
         ref={quillRef}
         value={localValue} // Use localValue, not value
         onChange={(content) => {
@@ -120,7 +121,6 @@ function RichTextEditorCell({ value, onValueChange, id }) {
         }}
         modules={modules1}
         theme="snow"
-        onFocus={handleFocus}
         onBlur={handleBlur}
         onKeyDown={(event) => {
           event.stopPropagation();
