@@ -63,10 +63,14 @@ function RichTextEditorCell({ value, onValueChange, id }) {
   };
 
   const handleBlur = async () => {
+    if (isFocused===true){
+        toast.success('Update successful');
+    }
+
     setIsFocused(false);
+
     
     onValueChange((newValue) => {
-      console.log('Before API Call - Value:', newValue); // Add this line
       return newValue;
     });
 
@@ -88,9 +92,7 @@ function RichTextEditorCell({ value, onValueChange, id }) {
         console.error('GraphQL Errors:', response.errors);
         // Handle GraphQL errors here and provide feedback to the user
       } else {
-        toast.success('Update successful');
-        console.log('Update successful');
-        onValueChange(value); // Update parent state with the new value
+        onValueChange(value);
       }
     } catch (error) {
       console.error('Error updating data:', error);
@@ -114,10 +116,10 @@ function RichTextEditorCell({ value, onValueChange, id }) {
       <ReactQuill
         readOnly={!isFocused}
         ref={quillRef}
-        value={localValue} // Use localValue, not value
+        value={localValue}
         onChange={(content) => {
-          setLocalValue(content); // Update local state
-          onValueChange(content); // Update parent state immediately
+          setLocalValue(content); 
+          onValueChange(content); 
         }}
         modules={modules1}
         theme="snow"
