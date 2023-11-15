@@ -354,7 +354,7 @@ function ExecutiveSummary() {
     headerName: <Typography style={textstyle}>Executive Summary</Typography>,
     headerClassName: 'super-app-theme--header',
     sortable: false,
-    editable: true,
+    editable: false,
     width: 15,
     flex: 2.5,
     renderCell: (params) => (

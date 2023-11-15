@@ -164,7 +164,7 @@ function SubmissionForm(){
             releaseType: todo.releaseType,
             status: todo.status,
             releaseStatus: todo.releaseStatus,
-            platform: todo.platform_type,
+            platform_type: todo.platform_type,
             ccoTarget: todo.ccoTarget,
             ccoActual: todo.ccoActual,
             ccoCommit: todo.ccoCommit,
@@ -322,7 +322,7 @@ function SubmissionForm(){
         // Update state based on selected project
         if (selectedProject) {
           setSelectedStatus(selectedProject.status);
-          setSelectedPlatform(selectedProject.platform);
+          setSelectedPlatform(selectedProject.platform_type);
           setSelectedReleaseStatus(selectedProject.releaseStatus);
           setSelectedProgramType(selectedProject.releaseType);
           setProgramContent(selectedProject.programContent || '');
