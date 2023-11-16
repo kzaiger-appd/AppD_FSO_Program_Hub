@@ -6,7 +6,13 @@
 
 /* eslint-disable */
 import * as React from "react";
-import { Button, Flex, Grid, TextField } from "@aws-amplify/ui-react";
+import {
+  Button,
+  Flex,
+  Grid,
+  SwitchField,
+  TextField,
+} from "@aws-amplify/ui-react";
 import { fetchByPath, getOverrideProps, validateField } from "./utils";
 import { API } from "aws-amplify";
 import { getTodo } from "../graphql/queries";
@@ -43,6 +49,7 @@ export default function TodoUpdateForm(props) {
     status: "",
     timsSitUrl: "",
     tsAttribute: "",
+    archived: false,
   };
   const [projectName, setProjectName] = React.useState(
     initialValues.projectName
@@ -83,6 +90,7 @@ export default function TodoUpdateForm(props) {
   const [tsAttribute, setTsAttribute] = React.useState(
     initialValues.tsAttribute
   );
+  const [archived, setArchived] = React.useState(initialValues.archived);
   const [errors, setErrors] = React.useState({});
   const resetStateValues = () => {
     const cleanValues = todoRecord
@@ -107,6 +115,7 @@ export default function TodoUpdateForm(props) {
     setStatus(cleanValues.status);
     setTimsSitUrl(cleanValues.timsSitUrl);
     setTsAttribute(cleanValues.tsAttribute);
+    setArchived(cleanValues.archived);
     setErrors({});
   };
   const [todoRecord, setTodoRecord] = React.useState(todoModelProp);
@@ -145,6 +154,7 @@ export default function TodoUpdateForm(props) {
     status: [],
     timsSitUrl: [],
     tsAttribute: [],
+    archived: [],
   };
   const runValidationTasks = async (
     fieldName,
@@ -191,6 +201,7 @@ export default function TodoUpdateForm(props) {
           status: status ?? null,
           timsSitUrl: timsSitUrl ?? null,
           tsAttribute: tsAttribute ?? null,
+          archived: archived ?? null,
         };
         const validationResponses = await Promise.all(
           Object.keys(validations).reduce((promises, fieldName) => {
@@ -270,6 +281,7 @@ export default function TodoUpdateForm(props) {
               status,
               timsSitUrl,
               tsAttribute,
+              archived,
             };
             const result = onChange(modelFields);
             value = result?.projectName ?? value;
@@ -312,6 +324,7 @@ export default function TodoUpdateForm(props) {
               status,
               timsSitUrl,
               tsAttribute,
+              archived,
             };
             const result = onChange(modelFields);
             value = result?.projectVersion ?? value;
@@ -354,6 +367,7 @@ export default function TodoUpdateForm(props) {
               status,
               timsSitUrl,
               tsAttribute,
+              archived,
             };
             const result = onChange(modelFields);
             value = result?.backlog ?? value;
@@ -396,6 +410,7 @@ export default function TodoUpdateForm(props) {
               status,
               timsSitUrl,
               tsAttribute,
+              archived,
             };
             const result = onChange(modelFields);
             value = result?.ccoActual ?? value;
@@ -438,6 +453,7 @@ export default function TodoUpdateForm(props) {
               status,
               timsSitUrl,
               tsAttribute,
+              archived,
             };
             const result = onChange(modelFields);
             value = result?.ccoCommit ?? value;
@@ -480,6 +496,7 @@ export default function TodoUpdateForm(props) {
               status,
               timsSitUrl,
               tsAttribute,
+              archived,
             };
             const result = onChange(modelFields);
             value = result?.ccoTarget ?? value;
@@ -522,6 +539,7 @@ export default function TodoUpdateForm(props) {
               status,
               timsSitUrl,
               tsAttribute,
+              archived,
             };
             const result = onChange(modelFields);
             value = result?.csldUrl ?? value;
@@ -564,6 +582,7 @@ export default function TodoUpdateForm(props) {
               status,
               timsSitUrl,
               tsAttribute,
+              archived,
             };
             const result = onChange(modelFields);
             value = result?.icDate ?? value;
@@ -606,6 +625,7 @@ export default function TodoUpdateForm(props) {
               status,
               timsSitUrl,
               tsAttribute,
+              archived,
             };
             const result = onChange(modelFields);
             value = result?.platform_type ?? value;
@@ -648,6 +668,7 @@ export default function TodoUpdateForm(props) {
               status,
               timsSitUrl,
               tsAttribute,
+              archived,
             };
             const result = onChange(modelFields);
             value = result?.psirtClosed ?? value;
@@ -690,6 +711,7 @@ export default function TodoUpdateForm(props) {
               status,
               timsSitUrl,
               tsAttribute,
+              archived,
             };
             const result = onChange(modelFields);
             value = result?.psirtOpened ?? value;
@@ -732,6 +754,7 @@ export default function TodoUpdateForm(props) {
               status,
               timsSitUrl,
               tsAttribute,
+              archived,
             };
             const result = onChange(modelFields);
             value = result?.releaseStatus ?? value;
@@ -774,6 +797,7 @@ export default function TodoUpdateForm(props) {
               status,
               timsSitUrl,
               tsAttribute,
+              archived,
             };
             const result = onChange(modelFields);
             value = result?.releaseType ?? value;
@@ -816,6 +840,7 @@ export default function TodoUpdateForm(props) {
               status,
               timsSitUrl,
               tsAttribute,
+              archived,
             };
             const result = onChange(modelFields);
             value = result?.rvVerified ?? value;
@@ -858,6 +883,7 @@ export default function TodoUpdateForm(props) {
               status,
               timsSitUrl,
               tsAttribute,
+              archived,
             };
             const result = onChange(modelFields);
             value = result?.programContent ?? value;
@@ -900,6 +926,7 @@ export default function TodoUpdateForm(props) {
               status,
               timsSitUrl,
               tsAttribute,
+              archived,
             };
             const result = onChange(modelFields);
             value = result?.ssAttribute ?? value;
@@ -942,6 +969,7 @@ export default function TodoUpdateForm(props) {
               status: value,
               timsSitUrl,
               tsAttribute,
+              archived,
             };
             const result = onChange(modelFields);
             value = result?.status ?? value;
@@ -984,6 +1012,7 @@ export default function TodoUpdateForm(props) {
               status,
               timsSitUrl: value,
               tsAttribute,
+              archived,
             };
             const result = onChange(modelFields);
             value = result?.timsSitUrl ?? value;
@@ -1026,6 +1055,7 @@ export default function TodoUpdateForm(props) {
               status,
               timsSitUrl,
               tsAttribute: value,
+              archived,
             };
             const result = onChange(modelFields);
             value = result?.tsAttribute ?? value;
@@ -1040,6 +1070,49 @@ export default function TodoUpdateForm(props) {
         hasError={errors.tsAttribute?.hasError}
         {...getOverrideProps(overrides, "tsAttribute")}
       ></TextField>
+      <SwitchField
+        label="Archived"
+        defaultChecked={false}
+        isDisabled={false}
+        isChecked={archived}
+        onChange={(e) => {
+          let value = e.target.checked;
+          if (onChange) {
+            const modelFields = {
+              projectName,
+              projectVersion,
+              backlog,
+              ccoActual,
+              ccoCommit,
+              ccoTarget,
+              csldUrl,
+              icDate,
+              platform_type,
+              psirtClosed,
+              psirtOpened,
+              releaseStatus,
+              releaseType,
+              rvVerified,
+              programContent,
+              ssAttribute,
+              status,
+              timsSitUrl,
+              tsAttribute,
+              archived: value,
+            };
+            const result = onChange(modelFields);
+            value = result?.archived ?? value;
+          }
+          if (errors.archived?.hasError) {
+            runValidationTasks("archived", value);
+          }
+          setArchived(value);
+        }}
+        onBlur={() => runValidationTasks("archived", archived)}
+        errorMessage={errors.archived?.errorMessage}
+        hasError={errors.archived?.hasError}
+        {...getOverrideProps(overrides, "archived")}
+      ></SwitchField>
       <Flex
         justifyContent="space-between"
         {...getOverrideProps(overrides, "CTAFlex")}

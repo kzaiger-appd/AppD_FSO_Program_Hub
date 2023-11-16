@@ -24,6 +24,7 @@ export const getTodo = /* GraphQL */ `
       status
       timsSitUrl
       tsAttribute
+      archived
       createdAt
       updatedAt
       __typename
@@ -58,6 +59,7 @@ export const listTodos = /* GraphQL */ `
         status
         timsSitUrl
         tsAttribute
+        archived
         createdAt
         updatedAt
         __typename

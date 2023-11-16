@@ -24,6 +24,7 @@ export const onCreateTodo = /* GraphQL */ `
       status
       timsSitUrl
       tsAttribute
+      archived
       createdAt
       updatedAt
       __typename
@@ -53,6 +54,7 @@ export const onUpdateTodo = /* GraphQL */ `
       status
       timsSitUrl
       tsAttribute
+      archived
       createdAt
       updatedAt
       __typename
@@ -82,6 +84,7 @@ export const onDeleteTodo = /* GraphQL */ `
       status
       timsSitUrl
       tsAttribute
+      archived
       createdAt
       updatedAt
       __typename

@@ -5,7 +5,7 @@
  **************************************************************************/
 
 import * as React from "react";
-import { GridProps, TextFieldProps } from "@aws-amplify/ui-react";
+import { GridProps, SwitchFieldProps, TextFieldProps } from "@aws-amplify/ui-react";
 export declare type EscapeHatchProps = {
     [elementHierarchy: string]: Record<string, unknown>;
 } | null;
@@ -41,6 +41,7 @@ export declare type TodoCreateFormInputValues = {
     status?: string;
     timsSitUrl?: string;
     tsAttribute?: string;
+    archived?: boolean;
 };
 export declare type TodoCreateFormValidationValues = {
     projectName?: ValidationFunction<string>;
@@ -62,6 +63,7 @@ export declare type TodoCreateFormValidationValues = {
     status?: ValidationFunction<string>;
     timsSitUrl?: ValidationFunction<string>;
     tsAttribute?: ValidationFunction<string>;
+    archived?: ValidationFunction<boolean>;
 };
 export declare type PrimitiveOverrideProps<T> = Partial<T> & React.DOMAttributes<HTMLDivElement>;
 export declare type TodoCreateFormOverridesProps = {
@@ -85,6 +87,7 @@ export declare type TodoCreateFormOverridesProps = {
     status?: PrimitiveOverrideProps<TextFieldProps>;
     timsSitUrl?: PrimitiveOverrideProps<TextFieldProps>;
     tsAttribute?: PrimitiveOverrideProps<TextFieldProps>;
+    archived?: PrimitiveOverrideProps<SwitchFieldProps>;
 } & EscapeHatchProps;
 export declare type TodoCreateFormProps = React.PropsWithChildren<{
     overrides?: TodoCreateFormOverridesProps | undefined | null;

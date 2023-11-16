@@ -27,6 +27,7 @@ export const createTodo = /* GraphQL */ `
       status
       timsSitUrl
       tsAttribute
+      archived
       createdAt
       updatedAt
       __typename
@@ -59,6 +60,7 @@ export const updateTodo = /* GraphQL */ `
       status
       timsSitUrl
       tsAttribute
+      archived
       createdAt
       updatedAt
       __typename
@@ -91,6 +93,7 @@ export const deleteTodo = /* GraphQL */ `
       status
       timsSitUrl
       tsAttribute
+      archived
       createdAt
       updatedAt
       __typename
