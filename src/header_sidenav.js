@@ -29,7 +29,7 @@ The handleClose function sets the anchorEl variable back to null, which closes t
 
 var current_title="Executive Summary";
 const [myTitle, setMyTitle] = useState(current_title);
-var userName="Howard University";
+var userName="AppDynamics";
 return (
   <div>
 	<AppBar position="fixed" className="header"elevation={0}>
@@ -54,6 +54,10 @@ return (
                       <NavIcon><i className="fa fa-fw fa-house" style={{fontSize:"1.5em"}} ></i></NavIcon>
                       <NavText>Executive Summary</NavText>
                   </NavItem>
+                  <NavItem eventKey="fso" onClick ={() => setMyTitle("FSO and CNAO")}>
+                      <NavIcon><i className="fa fa-fw fa-desktop" style={{fontSize:"1.5em"}}></i></NavIcon>
+                      <NavText>FSO and CNAO</NavText>
+                  </NavItem>
                   <NavItem eventKey="csaas" onClick ={() => setMyTitle("CSaaS")}>
                       <NavIcon><i className="fa fa-fw fa-hard-drive" style={{fontSize:"1.5em"}}></i></NavIcon>
                       <NavText>CSaaS</NavText>
@@ -66,10 +70,7 @@ return (
                       <NavIcon><i className="fa fa-fw fa-upload" style={{fontSize:"1.5em"}}></i></NavIcon>
                       <NavText>On-Prem</NavText>
                   </NavItem>
-                  <NavItem eventKey="fso" onClick ={() => setMyTitle("FSO and CNAO")}>
-                      <NavIcon><i className="fa fa-fw fa-desktop" style={{fontSize:"1.5em"}}></i></NavIcon>
-                      <NavText>FSO and CNAO</NavText>
-                  </NavItem>
+
                   <NavItem eventKey="submission_form" style={{position: "relative"}} onClick ={() => setMyTitle("New Project Submission")}>
                       <NavIcon><i className="fa fa-pencil" style={{fontSize:"1.5em"}}></i></NavIcon>
                       <NavText>New/Update Project</NavText>
