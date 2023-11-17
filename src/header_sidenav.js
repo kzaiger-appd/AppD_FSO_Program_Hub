@@ -30,6 +30,13 @@ The handleClose function sets the anchorEl variable back to null, which closes t
 var current_title="Executive Summary";
 const [myTitle, setMyTitle] = useState(current_title);
 var userName="AppDynamics";
+const [expanded, setExpanded] = React.useState(true);
+React.useEffect(() => {
+  // Set sideNavExpanded and expanded to true initially
+  setSideNavExpanded(true);
+
+}, [setSideNavExpanded]);
+
 return (
   <div>
 	<AppBar position="fixed" className="header"elevation={0}>
@@ -45,8 +52,10 @@ return (
 	</AppBar>
   <Toolbar />
 
-  <SideNav onSelect={handleSelect} className="mysidenav" onToggle={() => {
+  <SideNav expanded={expanded} onSelect={handleSelect} className="mysidenav" onToggle={() => {
           setSideNavExpanded(!sideNavExpanded);
+          setExpanded(!expanded);
+
         }} style={{position:'fixed'}}>
               <SideNav.Toggle />
               <SideNav.Nav defaultSelected="executive_summary">
