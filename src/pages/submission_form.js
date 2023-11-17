@@ -99,6 +99,7 @@ function getCurrentDate() {
 
 function SubmissionForm(){
 
+    const [isArchived, setIsArchived] = useState(false);
     const [isEditorFocused, setIsEditorFocused] = useState(false);
     const editorRef = useRef(null);
     const [editorHtml, setEditorHtml] = useState('');
@@ -124,6 +125,9 @@ function SubmissionForm(){
   
     const filterTodos = () => {
       let filtered = todos.filter((todo) => {
+        if (isArchived && todo.archived) {
+            return false;
+          }
         if (
           (onTrackCheck && todo.status === 'onTrack') ||
           (delayedCheck && todo.status === 'delayed') ||
@@ -143,6 +147,9 @@ function SubmissionForm(){
           const response = await API.graphql(
             graphqlOperation(listTodos, {
               // limit: paginationModel.pageSize,
+              filter: {
+                archived: { ne: true },
+              },
               nextToken: nextToken,
             })
           );
@@ -193,8 +200,8 @@ function SubmissionForm(){
     // [paginationModel, nextToken]
   
     useEffect(() => {
-      filterTodos(); // Call filterTodos to update the filtered data
-    }, [onTrackCheck, delayedCheck, missedCheck, todos]);
+        filterTodos(); // Call filterTodos to update the filtered data
+      }, [onTrackCheck, delayedCheck, missedCheck, isArchived, todos]);
 
 
 
@@ -326,6 +333,7 @@ function SubmissionForm(){
           setSelectedReleaseStatus(selectedProject.releaseStatus);
           setSelectedProgramType(selectedProject.releaseType);
           setProgramContent(selectedProject.programContent || '');
+          setIsArchived(selectedProject.archived || false);
         }
       }, [selectedProject]);
 
@@ -365,19 +373,35 @@ function SubmissionForm(){
         };
       }, [todos]); // Add any dependencies you need here
 
-      const handleArchive = async (projectId) => {
+
+    const handleArchive = async (projectId) => {
         try {
-          const updatedData = {
+        const updatedData = {
             id: projectId,
             archived: true,
-          };
-      
-          const response = await API.graphql(graphqlOperation(updateTodo, { input: updatedData }));
-          console.log('Data archived in Cosmos DB:', response);
+        };
+
+        const response = await API.graphql(graphqlOperation(updateTodo, { input: updatedData }));
+        console.log('Data archived in Cosmos DB:', response);
+
+        // Update the local state to reflect the archived status
+        setIsArchived(true);
+            
+        // Reset the editor content
+        setEditorHtml('');
+        
+        setProgramContent('');
+
+        // Reset other state variables if necessary
+        setSelectedProject(null);
+        setSelectedStatus('');
+        setSelectedPlatform('');
+        setSelectedReleaseStatus('');
+        setSelectedProgramType('');
         } catch (error) {
-          console.error('Error archiving data:', error);
+        console.error('Error archiving data:', error);
         }
-      };
+    };
     
       
     return (
@@ -392,41 +416,43 @@ function SubmissionForm(){
             <Select placeholder='Select project to update or archive' options={updateOptions} onChange={(selectedOption) => setSelectedProject(selectedOption.value)} ></Select>
             </div>
             <div style={{ marginLeft: '10px' }} hidden={!selectedStatus}>
-            <Button variant="danger" size="sm" onClick={() => setShowArchiveConfirmation(true)}>
+          <Button variant="danger" size="sm" onClick={() => setShowArchiveConfirmation(true)}>
             Archive Project
-        </Button>
-        {showArchiveConfirmation && (
-    <div className="confirmation-dialog">
-      <p>Are you sure you want to archive this project?</p>
-      <Button
-        variant="secondary"
-        size="sm"
-        onClick={() => setShowArchiveConfirmation(false)}
-      >
-        Cancel
-      </Button>
-      <Button
-        variant="danger"
-        size="sm"
-        onClick={() => {
-          setShowArchiveConfirmation(false);
-          setConfirmArchive(true);
-          setEnableUpdate(false);
-          setSelectedProject();
-          setSelectedStatus(false);
-          setTimeout(() => {
-            setConfirmArchive(false);
-        }, 3000);
-          // Add the logic to perform the archive action here
-        }}
-      >
-        Confirm Archive
-      </Button>
-    </div>
-  )}
-  </div>
-  {confirmArchive && <div style={{marginLeft:'40px', marginTop:'10px'}} className="alert alert-success">{'Project has been archived'}</div>}
+          </Button>
+          {showArchiveConfirmation && (
+            <div className="confirmation-dialog">
+              <p>Are you sure you want to archive this project?</p>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setShowArchiveConfirmation(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={() => {
+                  setShowArchiveConfirmation(false);
+                  setConfirmArchive(true);
+                  setEnableUpdate(false);
+                  setSelectedProject();
+                  setSelectedStatus(false);
+                  setTimeout(() => {
+                    setConfirmArchive(false);
+                  }, 3000);
+
+                  // Call handleArchive function to perform the archive action
+                  handleArchive(selectedProject.id);
+                }}
+              >
+                Confirm Archive
+              </Button>
             </div>
+          )}
+        </div>
+        {confirmArchive && <div style={{ marginLeft: '40px', marginTop: '10px' }} className="alert alert-success">{'Project has been archived'}</div>}
+      </div>
 
         <Form ref={formRef} onSubmit={submitForm}>
         {successMessage && <div className="alert alert-success">{successMessage}</div>}
@@ -513,13 +539,12 @@ function SubmissionForm(){
                             <FormControl
                                 type="date"
                                 name="ccoCommit"
-                                min={getCurrentDate()}
+                                min={selectedProject ? undefined : getCurrentDate()}
                                 required
                                 onChange={handleInputChange}
                                 className={`form-control ${validationErrors.ccoCommit ? 'is-invalid' : ''} form-control-sm`}
                                 defaultValue={selectedProject?.ccoCommit}
                             />
-                                
                             {validationErrors.ccoCommit && (
                                 <div className="invalid-feedback">GA Commit is required.</div>
                             )}
@@ -540,7 +565,7 @@ function SubmissionForm(){
                             <FormControl
                                 type="date"
                                 name="ccoTarget"
-                                min={getCurrentDate()}
+                                min={selectedProject ? undefined : getCurrentDate()}
                                 required
                                 onChange={handleInputChange}
                                 className={`form-control ${validationErrors.ccoTarget ? 'is-invalid' : ''} form-control-sm`}
@@ -568,12 +593,13 @@ function SubmissionForm(){
                             <FormControl
                                 type="date"
                                 name="ccoActual"
-                                min={getCurrentDate()}
+                                min={selectedProject ? undefined : getCurrentDate()}
                                 required
                                 onChange={handleInputChange}
                                 className={`form-control ${validationErrors.ccoActual ? 'is-invalid' : ''} form-control-sm`}
                                 defaultValue={selectedProject?.ccoActual}
                             />
+
                             {validationErrors.ccoActual && (
                                 <div className="invalid-feedback">GA Actual is required.</div>
                             )}
@@ -594,11 +620,13 @@ function SubmissionForm(){
                             <FormControl
                                 type="date"
                                 name="icDate"
+                                min={selectedProject ? undefined : getCurrentDate()}
                                 required
                                 onChange={handleInputChange}
                                 className={`form-control ${validationErrors.icDate ? 'is-invalid' : ''} form-control-sm`}
                                 defaultValue={selectedProject?.icDate}
                             />
+
                             {validationErrors.icDate && (
                                 <div className="invalid-feedback">IC Date is required.</div>
                             )}

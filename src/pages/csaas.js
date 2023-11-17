@@ -210,14 +210,17 @@ function Csaas(){
         return false;
       });
       setFilteredTodos(filtered);
-    };
+      console.log(filtered);
+    };  
 
     useEffect(() => {
       const fetchData = async () =>  {
         try {
           const response = await API.graphql(
             graphqlOperation(listTodos, {
-              // limit: paginationModel.pageSize,
+              filter: {
+                archived: { ne: true },
+              },
               nextToken: nextToken,
             })
           );

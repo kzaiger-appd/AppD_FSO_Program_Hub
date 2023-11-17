@@ -208,16 +208,17 @@ function Fso(){
         return false;
       });
       setFilteredTodos(filtered);
-    };
+      console.log(filtered);
+    };  
 
-    // Filter rows with platform 'FSO and CNAO'
-    // const filteredRows = rows.filter(row => row.platform === 'FSO and CNAO');
     useEffect(() => {
       const fetchData = async () =>  {
         try {
           const response = await API.graphql(
             graphqlOperation(listTodos, {
-              // limit: paginationModel.pageSize,
+              filter: {
+                archived: { ne: true },
+              },
               nextToken: nextToken,
             })
           );
