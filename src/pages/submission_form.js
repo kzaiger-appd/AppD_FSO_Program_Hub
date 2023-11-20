@@ -252,6 +252,7 @@ function SubmissionForm(){
         const formData = new FormData(e.target);
         const payload = Object.fromEntries(formData);
         setEnableUpdate(false);
+        setShowArchiveButton(false);
     
         // Validate fields before submitting
         const hasErrors = Object.values(validationErrors).some((error) => error);
