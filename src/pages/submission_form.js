@@ -323,6 +323,7 @@ function SubmissionForm(){
     const [selectedProgramType, setSelectedProgramType] = useState();
     const [showArchiveConfirmation, setShowArchiveConfirmation] = useState(false);
     const [confirmArchive, setConfirmArchive]=useState(false);
+    const [showArchiveButton, setShowArchiveButton]=useState(false);
 
 
     useEffect(() => {
@@ -334,6 +335,7 @@ function SubmissionForm(){
           setSelectedProgramType(selectedProject.releaseType);
           setProgramContent(selectedProject.programContent || '');
           setIsArchived(selectedProject.archived || false);
+          setShowArchiveButton(true)
         }
       }, [selectedProject]);
 
@@ -398,6 +400,7 @@ function SubmissionForm(){
         setSelectedPlatform('');
         setSelectedReleaseStatus('');
         setSelectedProgramType('');
+        setShowArchiveButton(false)
         } catch (error) {
         console.error('Error archiving data:', error);
         }
@@ -415,7 +418,7 @@ function SubmissionForm(){
             <div style={{width: '45%', marginLeft:'40px'}} hidden={!enableUpdate}>
             <Select placeholder='Select project to update or archive' options={updateOptions} onChange={(selectedOption) => setSelectedProject(selectedOption.value)} ></Select>
             </div>
-            <div style={{ marginLeft: '10px' }} hidden={!selectedStatus}>
+            <div style={{ marginLeft: '10px' }} hidden={!showArchiveButton}>
           <Button variant="danger" size="sm" onClick={() => setShowArchiveConfirmation(true)}>
             Archive Project
           </Button>
@@ -438,6 +441,7 @@ function SubmissionForm(){
                   setEnableUpdate(false);
                   setSelectedProject();
                   setSelectedStatus(false);
+                  setShowArchiveButton(false)
                   setTimeout(() => {
                     setConfirmArchive(false);
                   }, 3000);
